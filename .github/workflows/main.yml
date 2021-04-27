@@ -46,7 +46,6 @@ jobs:
         with:
           path: ~/.nimble
           key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
-      - uses: jiro4989/setup-nim-action@v1.0.2
       - run: nimble build -d:ssl -Y
       - name: Archive files
         run: nimble archive
