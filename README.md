@@ -6,8 +6,9 @@ very advanced fuzzer
 1. Install nim from nim-lang.org
 2. Run
 ```bash
-nim c -d:ssl vaf.nim
+nimble build
 ```
+A vaf.exe file will be created in your directory ready to be used
 ## using vaf
 
 using vaf is simple, here's the current help text:
