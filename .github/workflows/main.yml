@@ -1,27 +1,17 @@
-name: build
+name: release
 
 on:
   push:
-  pull_request:
-  release:
-    types: [published]
+    tags:
+      - 'v*.*.*'
 
 env:
-  APP_NAME: 'vaf' # TODO: need change
+  APP_NAME: 'vaf'
+  NIM_VERSION: 'stable'
+  MAINTAINER: 'd4rckh'
 
 jobs:
-  skip:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Skip job"
-  
-  before:
-    runs-on: ubuntu-latest
-    if: "! contains(github.event.head_commit.message, '[skip ci]')"
-    steps:
-      - run: echo "not contains '[skip ci]'"
-  
-  build:
+  build-artifact:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -29,39 +19,97 @@ jobs:
           - ubuntu-latest
           - windows-latest
           - macOS-latest
-    needs: before
-    env:
-      NIM_VERSION: 1.2.0
     steps:
       - uses: actions/checkout@v1
-      - name: Cache choosenim
-        id: cache-choosenim
-        uses: actions/cache@v1
+      - uses: jiro4989/setup-nim-action@v1
         with:
-          path: ~/.choosenim
-          key: ${{ runner.os }}-choosenim-${{ env.NIM_VERSION }}
-      - name: Cache nimble
-        id: cache-nimble
-        uses: actions/cache@v1
+          nim-version: ${{ env.NIM_VERSION }}
+      - run: nimble build -Y -d:release -d:ssl
+      - name: Create artifact
+        run: |
+          os="${{ runner.os }}"
+          assets="${{ env.APP_NAME }}_$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')"
+          echo "$assets"
+          mkdir -p "dist/$assets"
+          cp -r bin LICENSE README.* "dist/assets/"
+          (
+            cd dist
+            if [[ "${{ runner.os }}" == Windows ]]; then
+              7z a "$assets.zip" "$assets"
+            else
+              tar czf "$assets.tar.gz" "$assets"
+            fi
+            ls -lah *.*
+          )
+        shell: bash
+      - uses: actions/upload-artifact@v2
         with:
-          path: ~/.nimble
-          key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
-      - run: nimble build -d:ssl -Y
-      - name: Archive files
-        run: nimble archive
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          files: 'dist/${{ env.APP_NAME }}_*.*'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: artifact-${{ matrix.os }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
   
-  create-tag-draft:
+  create-release:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: build
+    needs:
+      - build-artifact
     steps:
-      - uses: release-drafter/release-drafter@v5.3.1
+      - uses: actions/checkout@v1
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: Release
+          draft: false
+          prerelease: false
+      
+      - name: Write upload_url to file
+        run: echo '${{ steps.create-release.outputs.upload_url }}' > upload_url.txt
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: create-release
+          path: upload_url.txt
+  
+  upload-release:
+    runs-on: ubuntu-latest
+    needs: create-release
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_name_suffix: linux.tar.gz
+            asset_content_type: application/gzip
+          - os: windows-latest
+            asset_name_suffix: windows.zip
+            asset_content_type: application/zip
+          - os: macOS-latest
+            asset_name_suffix: macos.tar.gz
+            asset_content_type: application/gzip
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact-${{ matrix.os }}
+      
+      - uses: actions/download-artifact@v2
+        with:
+          name: create-release
+      
+      - id: vars
+        run: |
+          echo "::set-output name=upload_url::$(cat upload_url.txt)"
+      
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.vars.outputs.upload_url }}
+          asset_path: ${{ env.APP_NAME }}_${{ matrix.asset_name_suffix }}
+          asset_name: ${{ env.APP_NAME }}_${{ matrix.asset_name_suffix }}
+          asset_content_type: ${{ matrix.asset_content_type }}
