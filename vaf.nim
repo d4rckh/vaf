@@ -11,10 +11,10 @@ import utils/VafColors
 
 let p = newParser("vaf - very advanced fuzzer"):
   option("-u", "--url", help="choose url, replace area to fuzz with $$")
-  option("-w", "--wordlist", help="the wordlist to use")
-  option("-sc", "--status", default=some("200"), help="set on which status to print, set this param to 'any'")
-  option("-pr", "--prefix", default=some(""), help="prefix, set this to / for content discovery if your url doesnt have a / at the end")
-  option("-sf", "--suffix", default=some(""), help="suffix, use this for extensions if you are doing content discovery")
+  option("-w", "--wordlist", help="choose the wordlist to use")
+  option("-sc", "--status", default=some("200"), help="set on which status to print, set this param to 'any' to print on any status")
+  option("-pr", "--prefix", default=some(""), help="prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end")
+  option("-sf", "--suffix", default=some(""), help="suffix, e.g. use this for extensions if you are doing content discovery")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
   flag("-pu", "--printurl", help="prints the url that has been requested")
