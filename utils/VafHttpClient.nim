@@ -1,6 +1,5 @@
 import httpclient
 import VafResponse
-import strutils
 
 var client = newHttpClient()
 
