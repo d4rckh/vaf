@@ -1,0 +1,68 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+
+env:
+  APP_NAME: 'vaf' # TODO: need change
+
+jobs:
+  skip:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Skip job"
+  
+  before:
+    runs-on: ubuntu-latest
+    if: "! contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - run: echo "not contains '[skip ci]'"
+  
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macOS-latest
+    needs: before
+    env:
+      NIM_VERSION: 1.2.0
+    steps:
+      - uses: actions/checkout@v1
+      - name: Cache choosenim
+        id: cache-choosenim
+        uses: actions/cache@v1
+        with:
+          path: ~/.choosenim
+          key: ${{ runner.os }}-choosenim-${{ env.NIM_VERSION }}
+      - name: Cache nimble
+        id: cache-nimble
+        uses: actions/cache@v1
+        with:
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
+      - uses: jiro4989/setup-nim-action@v1.0.2
+      - run: nimble build -d:ssl -Y
+      - name: Archive files
+        run: nimble archive
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: 'dist/${{ env.APP_NAME }}_*.*'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  create-tag-draft:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    steps:
+      - uses: release-drafter/release-drafter@v5.3.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
