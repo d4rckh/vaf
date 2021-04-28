@@ -10,7 +10,7 @@ import utils/VafFuzzResult
 import utils/VafColors
 
 let p = newParser("vaf - very advanced fuzzer"):
-  option("-u", "--url", help="choose url, replace area to fuzz with $$")
+  option("-u", "--url", help="choose url, replace area to fuzz with []")
   option("-w", "--wordlist", help="choose the wordlist to use")
   option("-sc", "--status", default=some("200"), help="set on which status to print, set this param to 'any' to print on any status")
   option("-pr", "--prefix", default=some(""), help="prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end")
@@ -25,7 +25,7 @@ try:
     var url: string = parsedArgs.url
     var wordlist: string = parsedArgs.wordlist
     var printOnStatus: string = parsedArgs.status
-    var displayUrl: string = url.replace("$$", fmt"{resetcols}{orange}$${resetcols}{khaki}")
+    var displayUrl: string = url.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
 
     echo ""
     discard log("header", fmt"Argument summary:")
@@ -45,7 +45,7 @@ try:
                 var word = prefix & keyword & suffix
                 if parsedArgs.urlencode:
                     word = encodeUrl(word, true)
-                var urlToRequest: string = url.replace("$$", word)
+                var urlToRequest: string = url.replace("[]", word)
                 var resp: VafResponse = makeRequest(urlToRequest)
 
                 proc doLog() = 

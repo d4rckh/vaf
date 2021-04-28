@@ -18,7 +18,7 @@ Usage:
 
 Options:
   -h, --help
-  -u, --url=URL              choose url, replace area to fuzz with $$
+  -u, --url=URL              choose url, replace area to fuzz with []
   -w, --wordlist=WORDLIST    choose the wordlist to use
   -sc, --status=STATUS       set on which status to print, set this param to 'any' to print on any status (default: 200)
   -pr, --prefix=PREFIX       prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end (default: )
@@ -30,8 +30,8 @@ Options:
 
 ## screenshots
 
-![main](screenshots/main.png)
-(with url printed, encoded output, every status code printed, prefix .php and no suffixes)
-
 ![main without pu](screenshots/main%20without%20pu.png)
-(with encoded output, every status code printed, prefix .php and no suffixes)
+(with every status code printed, suffix .php and no prefixes)
+
+![main](screenshots/main.png)
+(with url printed, every status code printed, suffix .php and no prefixes)
