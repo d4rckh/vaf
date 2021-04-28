@@ -35,3 +35,9 @@ Options:
 
 ![main](screenshots/main.png)
 (with url printed, every status code printed, suffixes .php,.html and no prefixes)
+
+## tips
+
+- Add a trailing `,` in the suffixes or prefixes argument to try the word without any suffix/prefix like this: `-pf .php,` or `-sf .php,`
+- Use `-pif` with a bunch of xss payloads as the wordlist to find XSS
+- Make an issue if you want to suggest a feature
