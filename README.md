@@ -31,7 +31,7 @@ Options:
 ## screenshots
 
 ![main without pu](screenshots/main%20without%20pu.png)
-(with every status code printed, suffix .php and no prefixes)
+(with every status code printed, suffixes .php,.html and no prefixes)
 
 ![main](screenshots/main.png)
-(with url printed, every status code printed, suffix .php and no prefixes)
+(with url printed, every status code printed, suffixes .php,.html and no prefixes)
