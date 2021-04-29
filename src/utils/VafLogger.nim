@@ -26,7 +26,7 @@ proc printResponse*(response: VafFuzzResult): int =
     if response.printUrl:
         urlDisplay = response.url
         urlDisplay = urlDisplay.replace(response.word, fmt"{resetcols}{khaki}{response.word}{resetcols}{orange}")
-    if "200" == statusCode:
+    if "200" == statusCode or "201" == statusCode:
         statusColor = lightgreen
-    return log("result", &"{resetcols}{statusColor}Status: {statusCode}; Length: {response.responseLength}{resetcols}\t\t{orange}{response.word} {urlDecoded} {urlDisplay} {resetcols}")
+    return log("result", &"{resetcols}{statusColor}Status: {statusCode}; Length: {response.responseLength}{resetcols}\t\t{khaki}{response.word} {orange}{urlDecoded} {urlDisplay} {resetcols}")
     

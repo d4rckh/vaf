@@ -23,6 +23,8 @@ Options:
   -sc, --status=STATUS       set on which status to print, set this param to 'any' to print on any status (default: 200)
   -pr, --prefix=PREFIX       prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end (default: )
   -sf, --suffix=SUFFIX       suffix, e.g. use this for extensions if you are doing content discovery (default: )
+  -pd, --postdata=POSTDATA   only used if '-m post' is set (default: {})
+  -m, --method=METHOD        suffix, e.g. use this for extensions if you are doing content discovery (default: get)
   -pif, --printifreflexive   print only if the output reflected in the page, useful for finding xss
   -ue, --urlencode           url encode the payloads
   -pu, --printurl            prints the url that has been requested
@@ -35,6 +37,23 @@ Options:
 
 ![main](screenshots/main.png)
 (with url printed, every status code printed, suffixes .php,.html and no prefixes)
+
+![main](screenshots/main%20post.png)
+(post data fuzzing)
+
+## examples
+
+Fuzz post data:
+
+```
+vaf.exe -w example_wordlists\short.txt -u https://jsonplaceholder.typicode.com/posts -m post -sc 201 -pd "{\"title\": \"[]\"}"
+```
+
+Fuzz GET URLs
+
+```
+vaf.exe -w example_wordlists\short.txt -u https://example.org/[] -sf .html
+```
 
 ## tips
 
