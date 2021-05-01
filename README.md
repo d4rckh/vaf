@@ -3,6 +3,8 @@ very advanced fuzzer
 
 ## compiling
 
+**There will also be a vaf_linux_amd64 binary for linux users already compiled by me, but that's not going to be always updated**
+
 0. Clone and cd into the repo
 1. Install nim
 
