@@ -5,8 +5,8 @@ very advanced fuzzer
 
 0. Clone and cd into the repo
 1. Install nim
-1.1 Linux: Install nim using: `curl https://nim-lang.org/choosenim/init.sh -sSf | sh` and adding nim to path
-1.2 Windows: Download nim from https://nim-lang.org/install_windows.html and run `finish.exe`
+Linux: Install nim using: `curl https://nim-lang.org/choosenim/init.sh -sSf | sh` and adding nim to path
+Windows: Download nim from https://nim-lang.org/install_windows.html and run `finish.exe` (you might need to reopen a cmd window for nim to load)
 2. Run
 ```bash
 nimble build
