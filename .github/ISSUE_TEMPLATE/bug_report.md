@@ -12,9 +12,8 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
-1. Ser argument to '...'
-3. Go to '....'
-4. See error
+1. Use the the following arguments: [args]
+2. An error will occur like this: [error]
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
