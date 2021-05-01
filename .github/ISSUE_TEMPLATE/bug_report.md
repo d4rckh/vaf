@@ -10,10 +10,12 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Use the the following arguments: [args]
-2. An error will occur like this: [error]
+**Reproducing**
+E.g. Arguments used
+
+**Actual behavior**
+A clear and concise description of what actually happened.
+
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
