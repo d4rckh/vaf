@@ -9,5 +9,6 @@
 
 ## Reporting a Vulnerability
 
-discord.com
-d4rckh#1545
+How can you report a vulnerability?
+You can DM me on discord, *d4rckh#1545*
+Or you can make a Issue using the vulnerabilty template!
