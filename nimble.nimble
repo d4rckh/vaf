@@ -1,4 +1,4 @@
-version       = "1.0.0"
+version       = "1.5.0"
 author        = "d4rckh"
 description   = "very advanced fuzzer"
 license       = "MIT"

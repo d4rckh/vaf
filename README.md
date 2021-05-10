@@ -15,12 +15,21 @@ very advanced fuzzer
 
 ## compiling
 
-1. Install nim from nim-lang.org
+**There will also be a vaf_linux_amd64 binary for linux users already compiled by me, but that's not going to be always updated**
+
+0. Clone and cd into the repo
+1. Install nim
+
+Linux: Install nim using: `curl https://nim-lang.org/choosenim/init.sh -sSf | sh` and adding nim to path
+
+Windows: Download nim from https://nim-lang.org/install_windows.html and run `finish.exe` (you might need to reopen a cmd window for nim to load)
+
 2. Run
 ```bash
 nimble build
 ```
-A vaf.exe file will be created in your directory ready to be used
+A vaf binary file will be created in your directory ready to be used
+
 ## using vaf
 
 using vaf is simple, here's the current help text:
