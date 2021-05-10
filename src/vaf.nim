@@ -16,7 +16,8 @@ let p = newParser("vaf - very advanced fuzzer"):
   option("-pr", "--prefix", default=some(""), help="prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end")
   option("-sf", "--suffix", default=some(""), help="suffix, e.g. use this for extensions if you are doing content discovery")
   option("-pd", "--postdata", default=some("{}"), help="only used if '-m post' is set")
-  option("-m", "--method", default=some("get"), help="suffix, e.g. use this for extensions if you are doing content discovery")
+  option("-m", "--method", default=some("get"), help="the method to use post/get, in lowercase, get is default")
+  option("-g", "--grep", default=some(""), help="greps for a string in the response")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
   flag("-pu", "--printurl", help="prints the url that has been requested")
@@ -29,6 +30,7 @@ try:
     var printOnStatus: string = parsedArgs.status
     var requestMethod: string = parsedArgs.method
     var postData: string = parsedArgs.postdata
+    var grep: string = parsedArgs.grep
     var displayPostData: string = postData.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
     var displayUrl: string = url.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
 
@@ -38,6 +40,7 @@ try:
     discard log("info", fmt"Target URL:         {khaki}{displayUrl}")
     discard log("info", fmt"Post Data:          {khaki}{displayPostData}")
     discard log("info", fmt"Method:             {khaki}{requestMethod}")
+    discard log("info", fmt"Grep:               {khaki}{grep}")
     discard log("info", fmt"Using Wordlist:     {khaki}{wordlist}")
     discard log("info", fmt"Using prefixes:     {khaki}{parsedArgs.prefix}")
     discard log("info", fmt"Using suffixes:     {khaki}{parsedArgs.suffix}")
@@ -58,7 +61,7 @@ try:
                 proc doLog() = 
                     discard printResponse(VafFuzzResult(word: word, statusCode: resp.statusCode, urlencoded: parsedArgs.urlencode, url: urlToRequest, printUrl: parsedArgs.printurl, responseLength: resp.responseLength))
 
-                if ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and (((word in resp.content) or decodeUrl(word) in resp.content) or not parsedArgs.printifreflexive):
+                if ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and (((word in resp.content) or decodeUrl(word) in resp.content) or not parsedArgs.printifreflexive) and (grep in resp.content):
                     doLog()
 except ShortCircuit as e:
   if e.flag == "argparse_help":

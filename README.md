@@ -1,6 +1,18 @@
 # vaf
 very advanced fuzzer
 
+**features**
+- Grep
+- Status code filtering
+- Detect reflexivness (useful for finding xss)
+- Prefix, suffixes
+- Custom wordlists
+- Fuzz any part of the url
+- POST support
+- URL encode payload
+- Print requested URL (useful for debugging)
+- Much more to come
+
 ## compiling
 
 1. Install nim from nim-lang.org
@@ -24,7 +36,8 @@ Options:
   -pr, --prefix=PREFIX       prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end (default: )
   -sf, --suffix=SUFFIX       suffix, e.g. use this for extensions if you are doing content discovery (default: )
   -pd, --postdata=POSTDATA   only used if '-m post' is set (default: {})
-  -m, --method=METHOD        suffix, e.g. use this for extensions if you are doing content discovery (default: get)
+  -m, --method=METHOD        the method to use post/get, in lowercase, get is default (default: get)
+  -g, --grep=GREP            greps for a string in the response (default: )
   -pif, --printifreflexive   print only if the output reflected in the page, useful for finding xss
   -ue, --urlencode           url encode the payloads
   -pu, --printurl            prints the url that has been requested
@@ -40,6 +53,9 @@ Options:
 
 ![main](screenshots/main%20post.png)
 (post data fuzzing)
+
+![main](screenshots/grep.png)
+(grep functionality)
 
 ## examples
 
