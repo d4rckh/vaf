@@ -8,6 +8,7 @@ import os
 import argparse
 import utils/VafFuzzResult
 import utils/VafColors
+import config/initVafConfig
 
 let p = newParser("vaf - very advanced fuzzer"):
   option("-u", "--url", help="choose url, replace area to fuzz with []")
@@ -23,6 +24,9 @@ let p = newParser("vaf - very advanced fuzzer"):
   flag("-pu", "--printurl", help="prints the url that has been requested")
 
 try:
+
+    # discard initVafConfig()
+
     var parsedArgs = p.parse(commandLineParams())
 
     var url: string = parsedArgs.url
