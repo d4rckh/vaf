@@ -8,6 +8,9 @@ import os
 import argparse
 import utils/VafFuzzResult
 import utils/VafColors
+import utils/VafBanner
+
+printBanner()
 
 let p = newParser("vaf - very advanced fuzzer"):
   option("-u", "--url", help="choose url, replace area to fuzz with []")
@@ -27,6 +30,15 @@ try:
 
     var url: string = parsedArgs.url
     var wordlist: string = parsedArgs.wordlist
+
+    if url == "" or wordlist == "":
+        discard log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
+        quit(1)
+    
+    if not ( "[]" in url ):
+        discard log("error", "Please specify a fuzz area in the url, example: 'https://example.org/[]'")
+        quit(1)
+    
     var printOnStatus: string = parsedArgs.status
     var requestMethod: string = parsedArgs.method
     var postData: string = parsedArgs.postdata
@@ -35,7 +47,7 @@ try:
     var displayUrl: string = url.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
 
     echo ""
-    discard log("header", fmt"Argument summary:")
+    discard log("header", fmt"Argument summary")
     discard log("info", fmt"Printing on status: {khaki}{printOnStatus}")
     discard log("info", fmt"Target URL:         {khaki}{displayUrl}")
     discard log("info", fmt"Post Data:          {khaki}{displayPostData}")
@@ -48,7 +60,7 @@ try:
     discard log("info", fmt"Url Encode:         {khaki}{parsedArgs.urlencode}")
     discard log("info", fmt"Print Url:          {khaki}{parsedArgs.printurl}")
     echo ""
-    discard log("header", fmt"Results:")
+    discard log("header", fmt"Results")
     for keyword in lines(wordlist):
         for prefix in parsedArgs.prefix.split(","):
             for suffix in parsedArgs.suffix.split(","):
