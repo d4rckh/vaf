@@ -1,4 +1,9 @@
 # vaf
+![GitHub Repo stars](https://img.shields.io/github/stars/d4rckh/vaf)
+[![GitHub issues](https://img.shields.io/github/issues/d4rckh/vaf)](https://github.com/d4rckh/vaf/issues)
+[![GitHub forks](https://img.shields.io/github/forks/d4rckh/vaf)](https://github.com/d4rckh/vaf/network)
+[![GitHub license](https://img.shields.io/github/license/d4rckh/vaf)](https://github.com/d4rckh/vaf/blob/main/LICENSE)
+
 very advanced fuzzer
 
 **features**
