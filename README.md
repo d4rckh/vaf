@@ -33,8 +33,18 @@ A vaf binary file will be created in your directory ready to be used
 
 ## using vaf
 
-using vaf is simple, here's the current help text:
+using vaf is very simple, here's the current help menu:
 ```
+                     _____ 
+      ___  _______ _/ ____\
+      \  \/ /\__  \\   __\
+       \   /  / __ \|  |
+        \_/  (____  /__|
+                  \/
+                by d4rckh
+
+vaf - very advanced fuzzer
+
 Usage:
   vaf - very advanced fuzzer [options]
 
@@ -43,14 +53,14 @@ Options:
   -u, --url=URL              choose url, replace area to fuzz with []
   -w, --wordlist=WORDLIST    choose the wordlist to use
   -sc, --status=STATUS       set on which status to print, set this param to 'any' to print on any status (default: 200)
-  -pr, --prefix=PREFIX       prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end (default: )
+  -pr, --prefix=PREFIX       prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end (default: )  
   -sf, --suffix=SUFFIX       suffix, e.g. use this for extensions if you are doing content discovery (default: )
   -pd, --postdata=POSTDATA   only used if '-m post' is set (default: {})
   -m, --method=METHOD        the method to use post/get, in lowercase, get is default (default: get)
   -g, --grep=GREP            greps for a string in the response (default: )
+  -o, --output=OUTPUT        Output the results in a file (default: )
   -pif, --printifreflexive   print only if the output reflected in the page, useful for finding xss
   -ue, --urlencode           url encode the payloads
-  -pu, --printurl            prints the url that has been requested
 ```
 
 ## screenshots
