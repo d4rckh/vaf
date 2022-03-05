@@ -96,3 +96,8 @@ vaf.exe -w example_wordlists\short.txt -u https://example.org/[] -sf .html
 - Add a trailing `,` in the suffixes or prefixes argument to try the word without any suffix/prefix like this: `-pf .php,` or `-sf .php,`
 - Use `-pif` with a bunch of xss payloads as the wordlist to find XSS
 - Make an issue if you want to suggest a feature
+
+# contributors 
+
+Thanks to everyone who contributed to this project!
+- [@daanbreur](https://github.com/daanbreur)
