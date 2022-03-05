@@ -4,6 +4,8 @@
 [![GitHub forks](https://img.shields.io/github/forks/d4rckh/vaf)](https://github.com/d4rckh/vaf/network)
 [![GitHub license](https://img.shields.io/github/license/d4rckh/vaf)](https://github.com/d4rckh/vaf/blob/main/LICENSE)
 
+![Runs on Windows and Linux and MacOS](https://img.shields.io/badge/runs%20on-windows%20macos%20linux-blue)
+
 very advanced fuzzer
 
 **features**
