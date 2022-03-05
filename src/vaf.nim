@@ -9,6 +9,7 @@ import argparse
 import utils/VafFuzzResult
 import utils/VafColors
 import utils/VafBanner
+import utils/VafOutput
 
 printBanner()
 
@@ -21,6 +22,7 @@ let p = newParser("vaf - very advanced fuzzer"):
   option("-pd", "--postdata", default=some("{}"), help="only used if '-m post' is set")
   option("-m", "--method", default=some("get"), help="the method to use post/get, in lowercase, get is default")
   option("-g", "--grep", default=some(""), help="greps for a string in the response")
+  option("-o", "--output", default=some(""), help="Output the results in a file")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
   flag("-pu", "--printurl", help="prints the url that has been requested")
@@ -59,6 +61,7 @@ try:
     discard log("info", fmt"Print if reflexive: {khaki}{parsedArgs.printifreflexive}")
     discard log("info", fmt"Url Encode:         {khaki}{parsedArgs.urlencode}")
     discard log("info", fmt"Print Url:          {khaki}{parsedArgs.printurl}")
+    discard log("info", fmt"Output file:        {khaki}{parsedArgs.output}")
     echo ""
     discard log("header", fmt"Results")
     for keyword in lines(wordlist):
@@ -69,9 +72,11 @@ try:
                     word = encodeUrl(word, true)
                 var urlToRequest: string = url.replace("[]", word)
                 var resp: VafResponse = makeRequest(urlToRequest, requestMethod, postData.replace("[]", word))
-
+                var fuzzResult: VafFuzzResult = VafFuzzResult(word: word, statusCode: resp.statusCode, urlencoded: parsedArgs.urlencode, url: urlToRequest, printUrl: parsedArgs.printurl, responseLength: resp.responseLength)
                 proc doLog() = 
-                    discard printResponse(VafFuzzResult(word: word, statusCode: resp.statusCode, urlencoded: parsedArgs.urlencode, url: urlToRequest, printUrl: parsedArgs.printurl, responseLength: resp.responseLength))
+                    discard printResponse(fuzzResult)
+                    if not ( parsedArgs.output == "" ):
+                        saveTofile(fuzzResult, parsedArgs.output)
 
                 if ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and (((word in resp.content) or decodeUrl(word) in resp.content) or not parsedArgs.printifreflexive) and (grep in resp.content):
                     doLog()

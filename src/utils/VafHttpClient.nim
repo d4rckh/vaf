@@ -1,6 +1,5 @@
 import httpclient
 import VafResponse
-import json
 
 var client = newHttpClient()
 
@@ -13,4 +12,4 @@ proc makeRequest*(url: string, requestType: string, postData: string): VafRespon
             "Content-Type": "application/json"
         })
         var response: Response = client.request(url, httpMethod = HttpPost, headers = customHeaders, body = postData)
-        return VafResponse(content: response.body, statusCode: response.status, responseLength: len(response.body))
+        return VafResponse(content: response.body, statusCode: response.status, responseLength: len(response.body), url: url)

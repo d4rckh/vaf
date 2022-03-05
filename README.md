@@ -3,6 +3,7 @@ very advanced fuzzer
 
 **features**
 - Grep
+- Output to a file
 - Status code filtering
 - Detect reflexivness (useful for finding xss)
 - Prefix, suffixes

@@ -4,3 +4,4 @@ type
     content*: string
     statusCode*: string
     responseLength*: int
+    url*: string
