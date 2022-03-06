@@ -1,7 +1,7 @@
-version       = "1.5.0"
+version       = "1.7.0"
 author        = "d4rckh"
-description   = "very advanced fuzzer"
-license       = "MIT"
+description   = "very advanced (web) fuzzer"
+license       = "GPL-3.0"
 
 bin = @["vaf"]
 srcDir = "src"
