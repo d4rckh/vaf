@@ -4,10 +4,10 @@ import VafResponse
 var client = newHttpClient()
 
 proc makeRequest*(url: string, requestType: string, postData: string): VafResponse = 
-    if requestType == "get":
+    if requestType == "GET":
         var response: Response = client.request(url, httpMethod = HttpGet)
         return VafResponse(content: response.body, statusCode: response.status, responseLength: len(response.body))
-    if requestType == "post":
+    if requestType == "POST":
         var customHeaders = newHttpHeaders({
             "Content-Type": "application/json"
         })

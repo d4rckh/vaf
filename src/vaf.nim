@@ -20,7 +20,7 @@ let p = newParser("vaf - very advanced fuzzer"):
   option("-pr", "--prefix", default=some(""), help="prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end")
   option("-sf", "--suffix", default=some(""), help="suffix, e.g. use this for extensions if you are doing content discovery")
   option("-pd", "--postdata", default=some("{}"), help="only used if '-m post' is set")
-  option("-m", "--method", default=some("get"), help="the method to use post/get, in lowercase, get is default")
+  option("-m", "--method", default=some("GET"), help="the method to use PSOT/GET")
   option("-g", "--grep", default=some(""), help="greps for a string in the response")
   option("-o", "--output", default=some(""), help="Output the results in a file")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
@@ -42,7 +42,7 @@ try:
         quit(1)
     
     var printOnStatus: string = parsedArgs.status
-    var requestMethod: string = parsedArgs.method
+    var requestMethod: string = parsedArgs.method.toUpper()
     var postData: string = parsedArgs.postdata
     var grep: string = parsedArgs.grep
     var displayPostData: string = postData.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
