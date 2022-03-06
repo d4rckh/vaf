@@ -13,9 +13,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Build project # This would actually build your project, using zip for an example artifact
+      - name: Install nim
+        uses: iffy/install-nim@v4.1.1
+      - name: Build project
         run: |
-          sudo apt install nim
           nimble build -y
       - name: Create Release
         id: create_release
