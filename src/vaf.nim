@@ -32,21 +32,23 @@ try:
 
     var url: string = parsedArgs.url
     var wordlist: string = parsedArgs.wordlist
-
-    if url == "" or wordlist == "":
-        discard log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
-        quit(1)
-    
-    if not ( "[]" in url ):
-        discard log("error", "Please specify a fuzz area in the url, example: 'https://example.org/[]'")
-        quit(1)
-    
     var printOnStatus: string = parsedArgs.status
     var requestMethod: string = parsedArgs.method.toUpper()
     var postData: string = parsedArgs.postdata
     var grep: string = parsedArgs.grep
     var displayPostData: string = postData.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
     var displayUrl: string = url.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
+
+    if url == "" or wordlist == "":
+        discard log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
+        quit(1)
+    
+    if not ( "[]" in url ) and ( requestMethod == "GET" ):
+        discard log("error", "Please specify a fuzz area in the url, example: 'https://example.org/[]'")
+        quit(1)
+    if not ( ( "[]" in postData ) or ( "[]" in url ) ) and ( requestMethod == "POST" ):
+        discard log("error", "Please specify a fuzz area in the post data or the url, example: '{\"username\": \"[]\"}' or 'https://example.org/[]'")
+        quit(1)
 
     echo ""
     discard log("header", fmt"Argument summary")
