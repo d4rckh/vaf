@@ -1,4 +1,3 @@
-version       = "v1.7.0"
 author        = "d4rckh"
 description   = "very advanced (web) fuzzer"
 license       = "GPL-3.0"
