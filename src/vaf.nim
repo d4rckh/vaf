@@ -13,7 +13,7 @@ import utils/VafOutput
 
 printBanner()
 
-let p = newParser("vaf - very advanced fuzzer"):
+let p = newParser("vaf - very (web) advanced fuzzer"):
   option("-u", "--url", help="choose url, replace area to fuzz with []")
   option("-w", "--wordlist", help="choose the wordlist to use")
   option("-sc", "--status", default=some("200"), help="set on which status to print, set this param to 'any' to print on any status")
