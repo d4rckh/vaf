@@ -16,7 +16,7 @@ jobs:
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: |
           sudo apt install nim
-          nim c -d:release -o:vaf src/vaf.nim
+          nimble build -y
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
