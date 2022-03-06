@@ -18,9 +18,9 @@ vaf is a cross-platform web fuzzer with a lot of features. Some of its features 
 - [your own feature!](https://github.com/d4rckh/vaf/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=%5Bfeature%5D)
 - And more...
 
-## Compiling
+## Installing
 
-**There will also be a vaf_linux_amd64 binary for linux users already compiled by me, but that's not going to be always updated**
+**You can find pre-compiled binaries in the [releases page](https://github.com/d4rckh/vaf/releases/)**
 
 1. Clone and cd into the repo
 2. Install nim
