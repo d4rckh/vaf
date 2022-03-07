@@ -20,14 +20,9 @@ vaf is a cross-platform web fuzzer with a lot of features. Some of its features 
 
 ## Installing
 
-**You can find pre-compiled binaries in the [releases page](https://github.com/d4rckh/vaf/releases/)**
-
-1. Clone and cd into the repo
-2. Install nim
-- Linux: Install nim using: `curl https://nim-lang.org/choosenim/init.sh -sSf | sh` and adding nim to path
-- Windows: Download nim from https://nim-lang.org/install_windows.html and run `finish.exe` (you might need to reopen a cmd window for nim to load)
-2. Run `nimble build`
-- A vaf binary file will be created in your directory ready to be used!
+There are the ways to install vaf
+- By downloading the **pre-compiled binaries in the [releases page](https://github.com/d4rckh/vaf/releases/)** and adding them manually to your path
+- By running the `install.sh` **bash script** which will __download nim, build vaf from source and then link the binary to /usr/bin__  (make sure to `chmod +x install.sh`)
 
 ## Usage
 
