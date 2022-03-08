@@ -30,5 +30,5 @@ proc printResponse*(response: VafFuzzResult): int =
         urlDisplay = urlDisplay.replace(response.word, fmt"{resetcols}{khaki}{response.word}{resetcols}{orange}")
     if "200" == statusCode or "201" == statusCode:
         statusColor = lightgreen
-    return log("result", &"{resetcols}{statusColor}Status: {statusCode}; Length: {response.responseLength}\t{response.word} {orange}{urlDecoded} {urlDisplay} {resetcols}")
+    return log("result", &"{resetcols}{statusColor}Status: {statusCode}; Length: {response.responseLength}; Time: {response.responseTime}ms\t{response.word} {orange}{urlDecoded} {urlDisplay} {resetcols}")
     
