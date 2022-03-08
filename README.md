@@ -1,9 +1,12 @@
+
 # vaf - very advanced (web) fuzzer
 ![GitHub Repo stars](https://img.shields.io/github/stars/d4rckh/vaf)
 [![GitHub issues](https://img.shields.io/github/issues/d4rckh/vaf)](https://github.com/d4rckh/vaf/issues)
 [![GitHub forks](https://img.shields.io/github/forks/d4rckh/vaf)](https://github.com/d4rckh/vaf/network)
 [![GitHub license](https://img.shields.io/github/license/d4rckh/vaf)](https://github.com/d4rckh/vaf/blob/main/LICENSE)
 ![GitHub top language](https://img.shields.io/github/languages/top/d4rckh/vaf)
+
+![main](screenshots/main.png)
 
 vaf is a cross-platform web fuzzer with a lot of features. Some of its features include:
 - Grepping
@@ -17,6 +20,7 @@ vaf is a cross-platform web fuzzer with a lot of features. Some of its features 
 - URL encode payload
 - [your own feature!](https://github.com/d4rckh/vaf/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=%5Bfeature%5D)
 - And more...
+
 
 ## Installing
 
@@ -46,17 +50,6 @@ Options:
   -ue, --urlencode           url encode the payloads
   -pu, --printurl            prints the url that has been requested
 ```
-
-## Screenshots
-The "UI" might be slighly different because the tool is being heavily updated.
-
-![main without pu](screenshots/main%20without%20pu.png)
-
-![main](screenshots/main.png)
-
-![main](screenshots/main%20post.png)
-
-![main](screenshots/grep.png)
 
 ## Examples
 
