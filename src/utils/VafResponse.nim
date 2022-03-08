@@ -5,3 +5,4 @@ type
     statusCode*: string
     responseLength*: int
     url*: string
+    responseTime*: int64

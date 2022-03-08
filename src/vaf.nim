@@ -54,16 +54,21 @@ try:
     discard log("header", fmt"Argument summary")
     discard log("info", fmt"Printing on status: {khaki}{printOnStatus}")
     discard log("info", fmt"Target URL:         {khaki}{displayUrl}")
-    discard log("info", fmt"Post Data:          {khaki}{displayPostData}")
+    if requestMethod == "POST":
+        discard log("info", fmt"Post Data:          {khaki}{displayPostData}")
     discard log("info", fmt"Method:             {khaki}{requestMethod}")
-    discard log("info", fmt"Grep:               {khaki}{grep}")
+    if not ( grep == "" ): 
+        discard log("info", fmt"Grep:               {khaki}{grep}")
     discard log("info", fmt"Using Wordlist:     {khaki}{wordlist}")
-    discard log("info", fmt"Using prefixes:     {khaki}{parsedArgs.prefix}")
-    discard log("info", fmt"Using suffixes:     {khaki}{parsedArgs.suffix}")
+    if not ( parsedArgs.prefix == ""):  
+        discard log("info", fmt"Using prefixes:     {khaki}{parsedArgs.prefix}")
+    if not ( parsedArgs.suffix == ""):  
+        discard log("info", fmt"Using suffixes:     {khaki}{parsedArgs.suffix}")
     discard log("info", fmt"Print if reflexive: {khaki}{parsedArgs.printifreflexive}")
     discard log("info", fmt"Url Encode:         {khaki}{parsedArgs.urlencode}")
-    discard log("info", fmt"Print Url:          {khaki}{parsedArgs.printurl}")
-    discard log("info", fmt"Output file:        {khaki}{parsedArgs.output}")
+    # discard log("info", fmt"Print Url:          {khaki}{parsedArgs.printurl}")
+    if not ( parsedArgs.output == ""):  
+        discard log("info", fmt"Output file:        {khaki}{parsedArgs.output}")
     echo ""
     discard log("header", fmt"Results")
     for keyword in lines(wordlist):
@@ -74,7 +79,15 @@ try:
                     word = encodeUrl(word, true)
                 var urlToRequest: string = url.replace("[]", word)
                 var resp: VafResponse = makeRequest(urlToRequest, requestMethod, postData.replace("[]", word))
-                var fuzzResult: VafFuzzResult = VafFuzzResult(word: word, statusCode: resp.statusCode, urlencoded: parsedArgs.urlencode, url: urlToRequest, printUrl: parsedArgs.printurl, responseLength: resp.responseLength)
+                var fuzzResult: VafFuzzResult = VafFuzzResult(
+                    word: word, 
+                    statusCode: resp.statusCode, 
+                    urlencoded: parsedArgs.urlencode, 
+                    url: urlToRequest, 
+                    printUrl: parsedArgs.printurl, 
+                    responseLength: resp.responseLength,
+                    responseTime: resp.responseTime
+                )
                 proc doLog() = 
                     discard printResponse(fuzzResult)
                     if not ( parsedArgs.output == "" ):

@@ -6,3 +6,4 @@ type
     url*: string
     printUrl*: bool
     responseLength*: int
+    responseTime*: int64
