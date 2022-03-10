@@ -24,13 +24,13 @@ vaf is a cross-platform web fuzzer with a lot of features. Some of its features 
 
 ## Installing
 
-These are the ways to install vaf:
-- By downloading the **pre-compiled binaries in the [releases page](https://github.com/d4rckh/vaf/releases/)** and adding them manually to your path
-- By running the `install.sh` **bash script** which will __download nim, build vaf from source and then link the binary to /usr/bin__  (make sure to `chmod +x install.sh`)
+You can install vaf:
+- by downloading the **pre-compiled binaries in the [releases page](https://github.com/d4rckh/vaf/releases/)** and adding them manually to your path
+- by running the `install.sh` **bash script** which will __download nim, build vaf from source and then link the binary to /usr/bin__  (make sure to `chmod +x install.sh`)
 
 ## Usage
 
-using vaf is very simple to use, here's the current help menu:
+Using vaf is very simple, here's the current help menu:
 ```
 Usage:
   vaf [options]
@@ -53,20 +53,19 @@ Options:
 
 ## Examples
 
+Fuzz GET URLs
+```
+vaf.exe -w example_wordlists\short.txt -u https://example.org/[] -sf .html
+```
+
 Fuzz post data:
 ```
 vaf.exe -w example_wordlists\short.txt -u https://jsonplaceholder.typicode.com/posts -m post -sc 201 -pd "{\"title\": \"[]\"}"
 ```
 
-Fuzz GET URLs
-
-```
-vaf.exe -w example_wordlists\short.txt -u https://example.org/[] -sf .html
-```
-
 ## Some tips
 
-- Add a trailing `,` in the suffixes or prefixes argument to try the word without any suffix/prefix like this: `-pf .php,` or `-sf .php,`
+- Add a cmoma (`,`) at the end in the suffixes or prefixes argument to try the word without any suffix/prefix like this: `-pf .php,` or `-sf .php`
 - Use `-pif` with a bunch of xss payloads as the wordlist to find XSS
 - Make an issue if you want to suggest a feature
 
