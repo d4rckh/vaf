@@ -4,21 +4,18 @@ import strformat
 import uri
 import strutils
 
-proc log*(logType: string, logMessage: string): int = 
+proc log*(logType: string, logMessage: string): void = 
     if logType == "info":
         echo aquamarine & "INFO: " & resetcols & logMessage & resetcols
-        return 1
     if logType == "result":
         echo aquamarine & "RESULT: " & resetcols & logMessage  & resetcols
-        return 1
     if logType == "header":
         echo bluey & "\t\t" & logMessage & resetcols & "\n"
-        return 1
     if logType == "error":
         echo orange & "ERROR: " & logMessage & resetcols & "\n"
 
 
-proc printResponse*(response: VafFuzzResult): int = 
+proc printResponse*(response: VafFuzzResult): void = 
     var urlDecoded: string = "" 
     var urlDisplay: string = ""
     var statusColor: string = khaki
@@ -30,5 +27,5 @@ proc printResponse*(response: VafFuzzResult): int =
         urlDisplay = urlDisplay.replace(response.word, fmt"{resetcols}{khaki}{response.word}{resetcols}{orange}")
     if "200" == statusCode or "201" == statusCode:
         statusColor = lightgreen
-    return log("result", &"{resetcols}{statusColor}Status: {statusCode}; Length: {response.responseLength}; Time: {response.responseTime}ms\t{response.word} {orange}{urlDecoded} {urlDisplay} {resetcols}")
+    log("result", &"{resetcols}{statusColor}Status: {statusCode}; Length: {response.responseLength}; Time: {response.responseTime}ms\t{response.word} {orange}{urlDecoded} {urlDisplay} {resetcols}")
     

@@ -10,6 +10,7 @@ import utils/VafFuzzResult
 import utils/VafColors
 import utils/VafBanner
 import utils/VafOutput
+import std/streams
 
 printBanner()
 
@@ -40,61 +41,79 @@ try:
     var displayUrl: string = url.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
 
     if url == "" or wordlist == "":
-        discard log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
+        log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
+        quit(1)
+
+    if not os.fileExists(wordlist):
+        log("error", "File " & wordlist & " does not exist.")
         quit(1)
     
-    if not ( "[]" in url ) and ( requestMethod == "GET" ):
-        discard log("error", "Please specify a fuzz area in the url, example: 'https://example.org/[]'")
+    if not ("[]" in url) and (requestMethod == "GET"):
+        log("error", "Please specify a fuzz area in the url, example: 'https://example.org/[]'")
         quit(1)
-    if not ( ( "[]" in postData ) or ( "[]" in url ) ) and ( requestMethod == "POST" ):
-        discard log("error", "Please specify a fuzz area in the post data or the url, example: '{\"username\": \"[]\"}' or 'https://example.org/[]'")
+    if not (("[]" in postData) or ("[]" in url)) and (requestMethod == "POST"):
+        log("error", "Please specify a fuzz area in the post data or the url, example: '{\"username\": \"[]\"}' or 'https://example.org/[]'")
         quit(1)
 
     echo ""
-    discard log("header", fmt"Argument summary")
-    discard log("info", fmt"Printing on status: {khaki}{printOnStatus}")
-    discard log("info", fmt"Target URL:         {khaki}{displayUrl}")
+    log("header", fmt"Argument summary")
+    log("info", fmt"Printing on status: {khaki}{printOnStatus}")
+    log("info", fmt"Target URL:         {khaki}{displayUrl}")
     if requestMethod == "POST":
-        discard log("info", fmt"Post Data:          {khaki}{displayPostData}")
-    discard log("info", fmt"Method:             {khaki}{requestMethod}")
+        log("info", fmt"Post Data:          {khaki}{displayPostData}")
+    log("info", fmt"Method:             {khaki}{requestMethod}")
     if not ( grep == "" ): 
-        discard log("info", fmt"Grep:               {khaki}{grep}")
-    discard log("info", fmt"Using Wordlist:     {khaki}{wordlist}")
+        log("info", fmt"Grep:               {khaki}{grep}")
+    log("info", fmt"Using Wordlist:     {khaki}{wordlist}")
     if not ( parsedArgs.prefix == ""):  
-        discard log("info", fmt"Using prefixes:     {khaki}{parsedArgs.prefix}")
+        log("info", fmt"Using prefixes:     {khaki}{parsedArgs.prefix}")
     if not ( parsedArgs.suffix == ""):  
-        discard log("info", fmt"Using suffixes:     {khaki}{parsedArgs.suffix}")
-    discard log("info", fmt"Print if reflexive: {khaki}{parsedArgs.printifreflexive}")
-    discard log("info", fmt"Url Encode:         {khaki}{parsedArgs.urlencode}")
-    # discard log("info", fmt"Print Url:          {khaki}{parsedArgs.printurl}")
+        log("info", fmt"Using suffixes:     {khaki}{parsedArgs.suffix}")
+    log("info", fmt"Print if reflexive: {khaki}{parsedArgs.printifreflexive}")
+    log("info", fmt"Url Encode:         {khaki}{parsedArgs.urlencode}")
     if not ( parsedArgs.output == ""):  
-        discard log("info", fmt"Output file:        {khaki}{parsedArgs.output}")
+        log("info", fmt"Output file:        {khaki}{parsedArgs.output}")
     echo ""
-    discard log("header", fmt"Results")
-    for keyword in lines(wordlist):
-        for prefix in parsedArgs.prefix.split(","):
-            for suffix in parsedArgs.suffix.split(","):
-                var word = prefix & keyword & suffix
-                if parsedArgs.urlencode:
-                    word = encodeUrl(word, true)
-                var urlToRequest: string = url.replace("[]", word)
-                var resp: VafResponse = makeRequest(urlToRequest, requestMethod, postData.replace("[]", word))
-                var fuzzResult: VafFuzzResult = VafFuzzResult(
-                    word: word, 
-                    statusCode: resp.statusCode, 
-                    urlencoded: parsedArgs.urlencode, 
-                    url: urlToRequest, 
-                    printUrl: parsedArgs.printurl, 
-                    responseLength: resp.responseLength,
-                    responseTime: resp.responseTime
-                )
-                proc doLog() = 
-                    discard printResponse(fuzzResult)
-                    if not ( parsedArgs.output == "" ):
-                        saveTofile(fuzzResult, parsedArgs.output)
+    log("header", fmt"Results")
+    
+    proc fuzz(word: string): void =
+        var urlToRequest: string = url.replace("[]", word)
+        var resp: VafResponse = makeRequest(urlToRequest, requestMethod, postData.replace("[]", word))
+        var fuzzResult: VafFuzzResult = VafFuzzResult(
+            word: word, 
+            statusCode: resp.statusCode, 
+            urlencoded: parsedArgs.urlencode, 
+            url: urlToRequest, 
+            printUrl: parsedArgs.printurl, 
+            responseLength: resp.responseLength,
+            responseTime: resp.responseTime
+        )
+        proc doLog() = 
+            printResponse(fuzzResult)
+            if not (parsedArgs.output == ""):
+                saveTofile(fuzzResult, parsedArgs.output)
 
-                if ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and (((word in resp.content) or decodeUrl(word) in resp.content) or not parsedArgs.printifreflexive) and (grep in resp.content):
-                    doLog()
+        if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
+            (((word in resp.content) or decodeUrl(word) in resp.content) or not parsedArgs.printifreflexive) and 
+            (grep in resp.content):
+            doLog()
+
+    var strm = newFileStream(wordlist, fmRead)
+    var line = ""
+
+    let prefixes = parsedArgs.prefix.split(",")
+    let suffixes = parsedArgs.suffix.split(",")
+
+    if not isNil(strm):
+        while strm.readLine(line):
+            for prefix in prefixes:
+                for suffix in suffixes:
+                    var word = prefix & line & suffix
+                    if parsedArgs.urlencode:
+                        word = encodeUrl(word, true)
+                    fuzz(word)
+        strm.close()
+
 except ShortCircuit as e:
   if e.flag == "argparse_help":
     echo p.help
