@@ -51,6 +51,7 @@ try:
     if not ("[]" in url) and (requestMethod == "GET"):
         log("error", "Please specify a fuzz area in the url, example: 'https://example.org/[]'")
         quit(1)
+
     if not (("[]" in postData) or ("[]" in url)) and (requestMethod == "POST"):
         log("error", "Please specify a fuzz area in the post data or the url, example: '{\"username\": \"[]\"}' or 'https://example.org/[]'")
         quit(1)
