@@ -5,6 +5,6 @@ proc printBanner*(): void =
       \  \/ /\__  \\   __\ 
        \   /  / __ \|  |    
         \_/  (____  /__|   
-                  \/ v1.9.0
+                  \/ v1.9.0-threads
             by d4rckh  
 """
