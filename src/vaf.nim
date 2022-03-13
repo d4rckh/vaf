@@ -108,19 +108,18 @@ try:
     let suffixes = parsedArgs.suffix.split(",")
 
     var
-        # thr: array[0..50, Thread[tuple[a,b: int]]]
-        thr = newSeq[Thread[tuple[a,b: int]]]()# : seq[Thread[tuple[a,b: int]]]
+        thr: array[0..11, Thread[tuple[a,b: int]]]
+        # thr = newSeq[Thread[tuple[a,b: int]]]()# : seq[Thread[tuple[a,b: int]]]
         L: Lock
         threads = 5
-        wordCount = 10      
+        wordCount = 10
         wordsPerThread = math.floorDiv(wordCount, threads)
         remainderWords = wordCount mod threads
     
     proc threadFunc(interval: tuple[a,b: int]) {.thread.} =
-        for i in interval.a..interval.b:
-            acquire(L)
-            
-            release(L)
+        let f = open("testfile", fmAppend)
+        defer: f.close()
+        f.writeLine(intToStr(interval.a) & " - " & intToStr(interval.b))  
 
     initLock(L) 
 
@@ -129,14 +128,11 @@ try:
         var endIndex = i*wordsPerThread+wordsPerThread
         if i == (threads-1) and not (remainderWords == 0):
             endIndex = i*wordsPerThread + wordsPerThread + remainderWords
-        echo "created one thread - " & intToStr(endIndex) & " => " & intToStr(endIndex) 
         createThread(thr[i], threadFunc, (startIndex, endIndex))
+        # echo "created one thread - " & intToStr(startIndex) & " => " & intToStr(endIndex) 
         joinThreads(thr)
 
     deinitLock(L)
-    
-    echo ".."
-
     quit()
 
     if not isNil(strm):
