@@ -11,6 +11,8 @@ import utils/VafColors
 import utils/VafBanner
 import utils/VafOutput
 import std/streams
+import std/locks
+import math
 
 printBanner()
 
@@ -104,6 +106,38 @@ try:
 
     let prefixes = parsedArgs.prefix.split(",")
     let suffixes = parsedArgs.suffix.split(",")
+
+    var
+        # thr: array[0..50, Thread[tuple[a,b: int]]]
+        thr = newSeq[Thread[tuple[a,b: int]]]()# : seq[Thread[tuple[a,b: int]]]
+        L: Lock
+        threads = 5
+        wordCount = 10      
+        wordsPerThread = math.floorDiv(wordCount, threads)
+        remainderWords = wordCount mod threads
+    
+    proc threadFunc(interval: tuple[a,b: int]) {.thread.} =
+        for i in interval.a..interval.b:
+            acquire(L)
+            
+            release(L)
+
+    initLock(L) 
+
+    for i in 0..(threads-1):
+        var startIndex = i*wordsPerThread
+        var endIndex = i*wordsPerThread+wordsPerThread
+        if i == (threads-1) and not (remainderWords == 0):
+            endIndex = i*wordsPerThread + wordsPerThread + remainderWords
+        echo "created one thread - " & intToStr(endIndex) & " => " & intToStr(endIndex) 
+        createThread(thr[i], threadFunc, (startIndex, endIndex))
+        joinThreads(thr)
+
+    deinitLock(L)
+    
+    echo ".."
+
+    quit()
 
     if not isNil(strm):
         while strm.readLine(line):
