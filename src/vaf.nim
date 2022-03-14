@@ -128,7 +128,7 @@ try:
     var i = 0
     for thread in threads.mitems:
         var startIndex = i*wordCountPerThread
-        var endIndex = i*wordCountPerThread+wordCountPerThread
+        var endIndex = i*wordCountPerThread+wordCountPerThread-1
         if i == threadCount-1:
             endIndex += remainingWordCount
         createThread(thread, threadFunction, (startIndex, endIndex, i))
