@@ -108,32 +108,33 @@ try:
     let suffixes = parsedArgs.suffix.split(",")
 
     var
-        thr: array[0..11, Thread[tuple[a,b: int]]]
-        # thr = newSeq[Thread[tuple[a,b: int]]]()# : seq[Thread[tuple[a,b: int]]]
-        L: Lock
-        threads = 5
         wordCount = 10
-        wordsPerThread = math.floorDiv(wordCount, threads)
-        remainderWords = wordCount mod threads
-    
-    proc threadFunc(interval: tuple[a,b: int]) {.thread.} =
-        let f = open("testfile", fmAppend)
-        defer: f.close()
-        f.writeLine(intToStr(interval.a) & " - " & intToStr(interval.b))  
+        threadCount = 5
+        threads = newSeq[Thread[tuple[a,b,c: int]]](threadCount)
+        L: Lock
+        wordCountPerThread = math.floorDiv(wordCount, threadCount)
+        remainingWordCount = wordCount mod threadCount
 
-    initLock(L) 
+    echo "wordCount: " & $wordCount
+    echo "threadCount: " & $threadCount
+    echo "wordCountPerThread: " & $wordCountPerThread
+    echo "remainingWordCount: " & $remainingWordCount
 
-    for i in 0..(threads-1):
-        var startIndex = i*wordsPerThread
-        var endIndex = i*wordsPerThread+wordsPerThread
-        if i == (threads-1) and not (remainderWords == 0):
-            endIndex = i*wordsPerThread + wordsPerThread + remainderWords
-        createThread(thr[i], threadFunc, (startIndex, endIndex))
-        # echo "created one thread - " & intToStr(startIndex) & " => " & intToStr(endIndex) 
-        joinThreads(thr)
+    proc threadFunction(data: tuple[a,b,c: int]) {.thread.} =
+        echo "ThreadID: " & $data.c & " | Indexes: " & $data.a & " -> " & $data.b
+        for i in data.a..data.b:
+            echo "ThreadID: " & $data.c & " | " & $i
 
-    deinitLock(L)
-    quit()
+    var i = 0
+    for thread in threads.mitems:
+        var startIndex = i*wordCountPerThread
+        var endIndex = i*wordCountPerThread+wordCountPerThread
+        if i == threadCount-1:
+            endIndex += remainingWordCount
+        createThread(thread, threadFunction, (startIndex, endIndex, i))
+        i += 1
+
+    joinThreads(threads)
 
     if not isNil(strm):
         while strm.readLine(line):
