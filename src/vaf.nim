@@ -1,6 +1,3 @@
-
-echo "WHAT"
-
 import strformat
 import strutils
 import uri
@@ -118,6 +115,7 @@ try:
         L: Lock
         wordCountPerThread = math.floorDiv(wordCount, threadCount)
         remainingWordCount = wordCount mod threadCount
+        fileLines = readFile(wordlist).split("\n")
 
     echo "wordCount: " & $wordCount
     echo "threadCount: " & $threadCount
@@ -126,8 +124,10 @@ try:
 
     proc threadFunction(data: tuple[a,b,c: int]) {.thread.} =
         echo "ThreadID: " & $data.c & " | Indexes: " & $data.a & " -> " & $data.b
-        for i in data.a..data.b:
-            echo "ThreadID: " & $data.c & " | " & $i
+        # for i in data.a..data.b:
+            # echo "ThreadID: " & $data.c & " | " & $i
+        {.cast(gcsafe).}:
+            fuzz("index.html/#" & $data.c)
 
     var i = 0
     for thread in threads.mitems:
@@ -140,15 +140,15 @@ try:
 
     joinThreads(threads)
 
-    if not isNil(strm):
-        while strm.readLine(line):
-            for prefix in prefixes:
-                for suffix in suffixes:
-                    var word = prefix & line & suffix
-                    if parsedArgs.urlencode:
-                        word = encodeUrl(word, true)
-                    fuzz(word)
-        strm.close()
+    # if not isNil(strm):
+    #     while strm.readLine(line):
+    #         for prefix in prefixes:
+    #             for suffix in suffixes:
+    #                 var word = prefix & line & suffix
+    #                 if parsedArgs.urlencode:
+    #                     word = encodeUrl(word, true)
+    #                 fuzz(word)
+    #     strm.close()
 
 except ShortCircuit as e:
   if e.flag == "argparse_help":
