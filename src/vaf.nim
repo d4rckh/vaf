@@ -1,3 +1,6 @@
+
+echo "WHAT"
+
 import strformat
 import strutils
 import uri
@@ -13,6 +16,7 @@ import utils/VafOutput
 import std/streams
 import std/locks
 import math
+
 
 printBanner()
 
@@ -108,7 +112,7 @@ try:
     let suffixes = parsedArgs.suffix.split(",")
 
     var
-        wordCount = 10
+        wordCount = 10 
         threadCount = 5
         threads = newSeq[Thread[tuple[a,b,c: int]]](threadCount)
         L: Lock
