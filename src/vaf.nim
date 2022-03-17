@@ -80,29 +80,31 @@ try:
     echo ""
     log("header", fmt"Results")
     
-    proc fuzz(word: string): void =
+    proc fuzz(word: string, url: string, grep: string, printOnStatus: string, postData: string, requestMethod: string, args: tuple[urlencode: bool, printurl: bool, output: string, printifreflexive: bool]): void =
+        debugEcho args
+
         var urlToRequest: string = url.replace("[]", word)
         var resp: VafResponse = makeRequest(urlToRequest, requestMethod, postData.replace("[]", word))
         var fuzzResult: VafFuzzResult = VafFuzzResult(
             word: word, 
             statusCode: resp.statusCode, 
-            urlencoded: parsedArgs.urlencode, 
+            urlencoded: args.urlencode, 
             url: urlToRequest, 
-            printUrl: parsedArgs.printurl, 
+            printUrl: args.printurl, 
             responseLength: resp.responseLength,
             responseTime: resp.responseTime
         )
         proc doLog() = 
             printResponse(fuzzResult)
-            if not (parsedArgs.output == ""):
-                saveTofile(fuzzResult, parsedArgs.output)
+            if not (args.output == ""):
+                saveTofile(fuzzResult, args.output)
 
         if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
-            (((word in resp.content) or decodeUrl(word) in resp.content) or not parsedArgs.printifreflexive) and 
+            (((word in resp.content) or decodeUrl(word) in resp.content) or not args.printifreflexive) and 
             (grep in resp.content):
             doLog()
 
-    var strm = newFileStream(wordlist, fmRead)
+    # var strm = newFileStream(wordlist, fmRead)
     var line = ""
 
     let prefixes = parsedArgs.prefix.split(",")
@@ -111,7 +113,7 @@ try:
     var
         wordCount = 10 
         threadCount = 5
-        threads = newSeq[Thread[tuple[a,b,c: int]]](threadCount)
+        threads = newSeq[Thread[tuple[startIndex, endIndex, threadId: int, url: string, grep: string, printOnStatus: string, postData: string, requestMethod: string, args: tuple[urlencode: bool, printurl: bool, output: string, printifreflexive: bool]]]](threadCount)
         L: Lock
         wordCountPerThread = math.floorDiv(wordCount, threadCount)
         remainingWordCount = wordCount mod threadCount
@@ -122,12 +124,11 @@ try:
     echo "wordCountPerThread: " & $wordCountPerThread
     echo "remainingWordCount: " & $remainingWordCount
 
-    proc threadFunction(data: tuple[a,b,c: int]) {.thread.} =
-        echo "ThreadID: " & $data.c & " | Indexes: " & $data.a & " -> " & $data.b
+    proc threadFunction(data: tuple[startIndex, endIndex, threadId: int, url: string, grep: string, printOnStatus: string, postData: string, requestMethod: string, args: tuple[urlencode: bool, printurl: bool, output: string, printifreflexive: bool]]) {.thread.} =
+        echo "ThreadID: " & $data.threadId & " | Indexes: " & $data.startIndex & " -> " & $data.endIndex
         # for i in data.a..data.b:
             # echo "ThreadID: " & $data.c & " | " & $i
-        {.cast(gcsafe).}:
-            fuzz("index.html/#" & $data.c)
+        fuzz("index.html/#" & $data.threadId, data.url, data.grep, data.printOnStatus, data.postData, data.requestMethod, data.args)
 
     var i = 0
     for thread in threads.mitems:
@@ -135,7 +136,7 @@ try:
         var endIndex = i*wordCountPerThread+wordCountPerThread-1
         if i == threadCount-1:
             endIndex += remainingWordCount
-        createThread(thread, threadFunction, (startIndex, endIndex, i))
+        createThread(thread, threadFunction, (startIndex, endIndex, i, url, grep, printOnStatus, postData, requestMethod, cast[tuple[urlencode: bool, printurl: bool, output: string, printifreflexive: bool]](parsedArgs)))
         i += 1
 
     joinThreads(threads)

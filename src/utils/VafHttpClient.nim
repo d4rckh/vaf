@@ -2,9 +2,11 @@ import httpclient
 import VafResponse
 import std/[times]
 
-var client = newHttpClient()
+# let client = newHttpClient()
 
 proc makeRequest*(url: string, requestType: string, postData: string): VafResponse = 
+    let client = newHttpClient()
+
     var response: Response = nil
     let time1 = now()
     if requestType == "GET":
