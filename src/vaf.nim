@@ -7,9 +7,11 @@ import utils/VafHttpClient
 import os
 import argparse
 import utils/VafFuzzResult
+import utils/VafFuzzArguments
 import utils/VafColors
 import utils/VafBanner
 import utils/VafOutput
+import utils/VafThreadArguments
 import std/streams
 import std/locks
 import math
@@ -80,11 +82,9 @@ try:
     echo ""
     log("header", fmt"Results")
     
-    proc fuzz(word: string, url: string, grep: string, printOnStatus: string, postData: string, requestMethod: string, args: tuple[urlencode: bool, printurl: bool, output: string, printifreflexive: bool]): void =
-        debugEcho args
-
-        var urlToRequest: string = url.replace("[]", word)
-        var resp: VafResponse = makeRequest(urlToRequest, requestMethod, postData.replace("[]", word))
+    proc fuzz(word: string, args: VafFuzzArguments): void =
+        var urlToRequest: string = args.url.replace("[]", word)
+        var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word))
         var fuzzResult: VafFuzzResult = VafFuzzResult(
             word: word, 
             statusCode: resp.statusCode, 
@@ -99,9 +99,9 @@ try:
             if not (args.output == ""):
                 saveTofile(fuzzResult, args.output)
 
-        if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
+        if  ((args.printOnStatus in resp.statusCode) or (args.printOnStatus == "any")) and 
             (((word in resp.content) or decodeUrl(word) in resp.content) or not args.printifreflexive) and 
-            (grep in resp.content):
+            (args.grep in resp.content):
             doLog()
 
     # var strm = newFileStream(wordlist, fmRead)
@@ -113,7 +113,7 @@ try:
     var
         wordCount = 10 
         threadCount = 5
-        threads = newSeq[Thread[tuple[startIndex, endIndex, threadId: int, url: string, grep: string, printOnStatus: string, postData: string, requestMethod: string, args: tuple[urlencode: bool, printurl: bool, output: string, printifreflexive: bool]]]](threadCount)
+        threads = newSeq[Thread[tuple[threadId, startIndex, endIndex: int, fuzzData: VafFuzzArguments]]](threadCount)
         L: Lock
         wordCountPerThread = math.floorDiv(wordCount, threadCount)
         remainingWordCount = wordCount mod threadCount
@@ -124,11 +124,11 @@ try:
     echo "wordCountPerThread: " & $wordCountPerThread
     echo "remainingWordCount: " & $remainingWordCount
 
-    proc threadFunction(data: tuple[startIndex, endIndex, threadId: int, url: string, grep: string, printOnStatus: string, postData: string, requestMethod: string, args: tuple[urlencode: bool, printurl: bool, output: string, printifreflexive: bool]]) {.thread.} =
+    proc threadFunction(data: tuple[threadId, startIndex, endIndex: int, fuzzData: VafFuzzArguments]) {.thread.} =
         echo "ThreadID: " & $data.threadId & " | Indexes: " & $data.startIndex & " -> " & $data.endIndex
-        # for i in data.a..data.b:
-            # echo "ThreadID: " & $data.c & " | " & $i
-        fuzz("index.html/#" & $data.threadId, data.url, data.grep, data.printOnStatus, data.postData, data.requestMethod, data.args)
+        for i in data.startIndex..data.endIndex:
+            echo "ThreadID: " & $data.threadId & " | " & $i
+        fuzz("index.html/#" & $data.threadId, data.fuzzData)
 
     var i = 0
     for thread in threads.mitems:
@@ -136,7 +136,19 @@ try:
         var endIndex = i*wordCountPerThread+wordCountPerThread-1
         if i == threadCount-1:
             endIndex += remainingWordCount
-        createThread(thread, threadFunction, (startIndex, endIndex, i, url, grep, printOnStatus, postData, requestMethod, cast[tuple[urlencode: bool, printurl: bool, output: string, printifreflexive: bool]](parsedArgs)))
+        var fuzzData: VafFuzzArguments = VafFuzzArguments(
+            url: url,
+            grep: grep,
+            printOnStatus: printOnStatus,
+            postData: postData,
+            requestMethod: requestMethod,
+            urlencode: parsedArgs.urlencode,
+            printurl: parsedArgs.printurl,
+            output: parsedArgs.output,
+            printifreflexive: parsedArgs.printifreflexive
+        )
+
+        createThread(thread, threadFunction, (i,startIndex,endIndex,fuzzData))
         i += 1
 
     joinThreads(threads)
