@@ -160,7 +160,7 @@ try:
             endIndex += remainingWordCount
         var threadArguments: VafThreadArguments = VafThreadArguments(
             fuzzData: fuzzData,
-            words: fileLines[startIndex..endIndex] #idk how to select from startIndex to endIndex
+            words: fileLines[startIndex..endIndex] 
         )
         if parsedArgs.debug:
             log("debug", "Creating thread with ID " & $i & " with indexes " & $startIndex & " -> " & $endIndex)
