@@ -12,7 +12,9 @@ proc log*(logType: string, logMessage: string): void =
     if logType == "header":
         echo bluey & "\t\t" & logMessage & resetcols & "\n"
     if logType == "error":
-        echo orange & "ERROR: " & logMessage & resetcols & "\n"
+        echo orange & "ERROR: " & logMessage & resetcols
+    if logType == "debug":
+        echo bluey & "DEBUG: " & logMessage & resetcols
 
 
 proc printResponse*(response: VafFuzzResult): void = 

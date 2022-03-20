@@ -9,3 +9,4 @@ type
         printurl*: bool
         output*: string
         printifreflexive*: bool
+        debug*: bool
