@@ -30,6 +30,7 @@ let p = newParser("vaf"):
   option("-m", "--method", default=some("GET"), help="the method to use PSOT/GET")
   option("-g", "--grep", default=some(""), help="greps for a string in the response")
   option("-o", "--output", default=some(""), help="Output the results in a file")
+  option("-t", "--threads", default=some("1"), help="The amount of threads to use")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
   flag("-pu", "--printurl", help="prints the url that has been requested")
@@ -113,24 +114,38 @@ try:
 
     var
         wordCount = 10 
-        threadCount = 5
-        threads = newSeq[Thread[tuple[threadId, startIndex, endIndex: int, fuzzData: VafFuzzArguments]]](threadCount)
+        threadCount = parseInt(parsedArgs.threads)
+        threads = newSeq[Thread[tuple[threadId: int, threadArguments: VafThreadArguments]]](threadCount)
         L: Lock
         wordCountPerThread = math.floorDiv(wordCount, threadCount)
         remainingWordCount = wordCount mod threadCount
         fileLines = readFile(wordlist).split("\n")
+
+    var fuzzData: VafFuzzArguments = VafFuzzArguments(
+        url: url,
+        grep: grep,
+        printOnStatus: printOnStatus,
+        postData: postData,
+        requestMethod: requestMethod,
+        urlencode: parsedArgs.urlencode,
+        printurl: parsedArgs.printurl,
+        output: parsedArgs.output,
+        printifreflexive: parsedArgs.printifreflexive
+    )
 
     echo "wordCount: " & $wordCount
     echo "threadCount: " & $threadCount
     echo "wordCountPerThread: " & $wordCountPerThread
     echo "remainingWordCount: " & $remainingWordCount
 
-    proc threadFunction(data: tuple[threadId, startIndex, endIndex: int, fuzzData: VafFuzzArguments]) {.thread.} =
+    proc threadFunction(data: tuple[threadId: int, threadArguments: VafThreadArguments]) {.thread.} =
         var client: HttpClient = newHttpClient()
-        echo "ThreadID: " & $data.threadId & " | Indexes: " & $data.startIndex & " -> " & $data.endIndex
-        for i in data.startIndex..data.endIndex:
-            echo "ThreadID: " & $data.threadId & " | " & $i
-        fuzz("index.html/#" & $data.threadId, client, data.fuzzData)
+        var threadData: VafThreadArguments = data.threadArguments
+        echo "ThreadID: " & $data.threadId & " | got " & $len(threadData.words) & " words"
+        for threadWord in threadData.words:
+            let word = threadWord.replace("\r", "")
+            echo "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & word
+            fuzz(word, client, threadData.fuzzData)
 
     var i = 0
     for thread in threads.mitems:
@@ -138,19 +153,12 @@ try:
         var endIndex = i*wordCountPerThread+wordCountPerThread-1
         if i == threadCount-1:
             endIndex += remainingWordCount
-        var fuzzData: VafFuzzArguments = VafFuzzArguments(
-            url: url,
-            grep: grep,
-            printOnStatus: printOnStatus,
-            postData: postData,
-            requestMethod: requestMethod,
-            urlencode: parsedArgs.urlencode,
-            printurl: parsedArgs.printurl,
-            output: parsedArgs.output,
-            printifreflexive: parsedArgs.printifreflexive
+        var threadArguments: VafThreadArguments = VafThreadArguments(
+            fuzzData: fuzzData,
+            words: fileLines #idk how to select from startIndex to endIndex
         )
 
-        createThread(thread, threadFunction, (i,startIndex,endIndex,fuzzData))
+        createThread(thread, threadFunction, (i, threadArguments))
         i += 1
 
     joinThreads(threads)
