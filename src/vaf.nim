@@ -1,6 +1,7 @@
 import strformat
 import strutils
 import uri
+import httpclient
 import utils/VafResponse
 import utils/VafLogger
 import utils/VafHttpClient
@@ -84,7 +85,7 @@ try:
     
     proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments): void =
         var urlToRequest: string = args.url.replace("[]", word)
-        var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word))
+        var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
         var fuzzResult: VafFuzzResult = VafFuzzResult(
             word: word, 
             statusCode: resp.statusCode, 
