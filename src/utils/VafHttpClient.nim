@@ -4,9 +4,7 @@ import std/[times]
 
 # let client = newHttpClient()
 
-proc makeRequest*(url: string, requestType: string, postData: string): VafResponse = 
-    let client = newHttpClient()
-
+proc makeRequest*(url: string, requestType: string, postData: string, client: HttpClient): VafResponse = 
     var response: Response = nil
     let time1 = now()
     if requestType == "GET":

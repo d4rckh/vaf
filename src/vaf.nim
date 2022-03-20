@@ -82,7 +82,7 @@ try:
     echo ""
     log("header", fmt"Results")
     
-    proc fuzz(word: string, args: VafFuzzArguments): void =
+    proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments): void =
         var urlToRequest: string = args.url.replace("[]", word)
         var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word))
         var fuzzResult: VafFuzzResult = VafFuzzResult(
@@ -125,10 +125,11 @@ try:
     echo "remainingWordCount: " & $remainingWordCount
 
     proc threadFunction(data: tuple[threadId, startIndex, endIndex: int, fuzzData: VafFuzzArguments]) {.thread.} =
+        var client: HttpClient = newHttpClient()
         echo "ThreadID: " & $data.threadId & " | Indexes: " & $data.startIndex & " -> " & $data.endIndex
         for i in data.startIndex..data.endIndex:
             echo "ThreadID: " & $data.threadId & " | " & $i
-        fuzz("index.html/#" & $data.threadId, data.fuzzData)
+        fuzz("index.html/#" & $data.threadId, client, data.fuzzData)
 
     var i = 0
     for thread in threads.mitems:
