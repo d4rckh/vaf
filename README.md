@@ -18,6 +18,7 @@ vaf is a cross-platform web fuzzer with a lot of features. Some of its features 
 - Fuzz any part of the url
 - Fuzz POST data
 - URL encode payload
+- [Threading (wip)](https://github.com/d4rckh/vaf/pull/14)
 - [your own feature!](https://github.com/d4rckh/vaf/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=%5Bfeature%5D)
 - And more...
 
