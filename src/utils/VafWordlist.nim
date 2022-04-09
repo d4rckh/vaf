@@ -45,6 +45,8 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
             inc i
             if i == threadcount:
                 i = 0
+
+    # close streams
     strm.close()
     for stream in wordlistStreams:
         stream.close()

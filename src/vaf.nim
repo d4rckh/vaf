@@ -87,6 +87,7 @@ try:
     log("header", fmt"Results")
     
     proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments): void =
+        echo word
         var urlToRequest: string = args.url.replace("[]", word)
         var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
         var fuzzResult: VafFuzzResult = VafFuzzResult(
@@ -114,15 +115,6 @@ try:
     let prefixes = parsedArgs.prefix.split(",")
     let suffixes = parsedArgs.suffix.split(",")
 
-    var
-        fileLines = ""#readFile(wordlist).split("\n")
-        wordCount = len(fileLines) 
-        threadCount = parseInt(parsedArgs.threads)
-        threads = newSeq[Thread[tuple[threadId: int, threadArguments: VafThreadArguments]]](threadCount)
-        L: Lock
-        wordCountPerThread = math.floorDiv(wordCount, threadCount)
-        remainingWordCount = wordCount mod threadCount
-
     var fuzzData: VafFuzzArguments = VafFuzzArguments(
         url: url,
         grep: grep,
@@ -134,50 +126,46 @@ try:
         suffixes: suffixes,
         prefixes: prefixes,
         printurl: parsedArgs.printurl,
-        threadcount: threadCount,
+        threadcount: parseInt(parsedArgs.threads),
         output: parsedArgs.output,
         printifreflexive: parsedArgs.printifreflexive,
         debug: parsedArgs.debug
     )
 
-    discard prepareWordlist(fuzzData)
+    let wordlistFiles: seq[string] = prepareWordlist(fuzzData)
 
-    if parsedArgs.debug:
-        log("debug", "wordCount: " & $wordCount)
-        log("debug", "threadCount: " & $threadCount)
-        log("debug", "wordCountPerThread: " & $wordCountPerThread)
-        log("debug", "remainingWordCount: " & $remainingWordCount)
+    var
+        threadCount = len(wordlistFiles)
+        threads = newSeq[Thread[tuple[threadId: int, threadArguments: VafThreadArguments]]](threadCount)
+        L: Lock
 
+    proc threadFunction(data: tuple[threadId: int, threadArguments: VafThreadArguments]) {.thread.} =
+        var client: HttpClient = newHttpClient()
+        var threadData: VafThreadArguments = data.threadArguments
+        
+        if threadData.fuzzData.debug:
+            echo "ThreadID: " & $data.threadId & " | got to deal with the " & threadData.wordlistFile & " wordlist"
+        echo threadData.wordlistFile
+        var strm = newFileStream(threadData.wordlistFile, fmRead)
+        var line = ""
+        if not isNil(strm):
+            while strm.readLine(line):
+                if threadData.fuzzData.debug:
+                    log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & line)
+                fuzz(line, client, threadData.fuzzData)
 
+    var i = 0
+    for thread in threads.mitems:
+        if parsedArgs.debug:
+            log("debug", "Creating thread with ID " & $i)
+        var threadArguments: VafThreadArguments = VafThreadArguments(
+            fuzzData: fuzzData,
+            wordlistFile: wordlistFiles[i] 
+        )
+        createThread(thread, threadFunction, (i, threadArguments))
+        i += 1
 
-    # proc threadFunction(data: tuple[threadId: int, threadArguments: VafThreadArguments]) {.thread.} =
-    #     var client: HttpClient = newHttpClient()
-    #     var threadData: VafThreadArguments = data.threadArguments
-    #     if threadData.fuzzData.debug:
-    #         echo "ThreadID: " & $data.threadId & " | got " & $len(threadData.words) & " words"
-    #     for threadWord in threadData.words:
-    #         let word = threadWord.replace("\r", "")
-    #         if threadData.fuzzData.debug:
-    #             log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & word)
-    #         fuzz(word, client, threadData.fuzzData)
-
-    # var i = 0
-    # for thread in threads.mitems:
-    #     var startIndex = i*wordCountPerThread
-    #     var endIndex = i*wordCountPerThread+wordCountPerThread-1
-    #     if i == threadCount-1:
-    #         endIndex += remainingWordCount
-    #     var threadArguments: VafThreadArguments = VafThreadArguments(
-    #         fuzzData: fuzzData,
-    #         words: fileLines[startIndex..endIndex] 
-    #     )
-    #     if parsedArgs.debug:
-    #         log("debug", "Creating thread with ID " & $i & " with indexes " & $startIndex & " -> " & $endIndex)
-
-    #     createThread(thread, threadFunction, (i, threadArguments))
-    #     i += 1
-
-    # joinThreads(threads)
+    joinThreads(threads)
 
     # if not isNil(strm):
     #     while strm.readLine(line):
