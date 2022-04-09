@@ -2,11 +2,13 @@ import strformat
 import strutils
 import uri
 import httpclient
+import os
+import argparse
+import std/streams
+
 import utils/VafResponse
 import utils/VafLogger
 import utils/VafHttpClient
-import os
-import argparse
 import utils/VafFuzzResult
 import utils/VafFuzzArguments
 import utils/VafColors
@@ -14,10 +16,6 @@ import utils/VafBanner
 import utils/VafOutput
 import utils/VafThreadArguments
 import utils/VafWordlist
-import std/streams
-import std/locks
-import math
-
 
 printBanner()
 
@@ -108,9 +106,6 @@ try:
             (args.grep in resp.content):
             doLog()
 
-    # var strm = newFileStream(wordlist, fmRead)
-    var line = ""
-
     let prefixes = parsedArgs.prefix.split(",")
     let suffixes = parsedArgs.suffix.split(",")
 
@@ -136,7 +131,6 @@ try:
     var
         threadCount = len(wordlistFiles)
         threads = newSeq[Thread[tuple[threadId: int, threadArguments: VafThreadArguments]]](threadCount)
-        L: Lock
 
     proc threadFunction(data: tuple[threadId: int, threadArguments: VafThreadArguments]) {.thread.} =
         var client: HttpClient = newHttpClient()
@@ -165,16 +159,6 @@ try:
         i += 1
 
     joinThreads(threads)
-
-    # if not isNil(strm):
-    #     while strm.readLine(line):
-    #         for prefix in prefixes:
-    #             for suffix in suffixes:
-    #                 var word = prefix & line & suffix
-    #                 if parsedArgs.urlencode:
-    #                     word = encodeUrl(word, true)
-    #                 fuzz(word)
-    #     strm.close()
 
 except ShortCircuit as e:
   if e.flag == "argparse_help":

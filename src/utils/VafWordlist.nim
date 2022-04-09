@@ -1,7 +1,6 @@
 import std/streams
 import os
 import strformat
-import strutils
 import uri
 import std/random
 
