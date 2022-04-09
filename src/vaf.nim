@@ -13,6 +13,7 @@ import utils/VafColors
 import utils/VafBanner
 import utils/VafOutput
 import utils/VafThreadArguments
+import utils/VafWordlist
 import std/streams
 import std/locks
 import math
@@ -114,7 +115,7 @@ try:
     let suffixes = parsedArgs.suffix.split(",")
 
     var
-        fileLines = readFile(wordlist).split("\n")
+        fileLines = ""#readFile(wordlist).split("\n")
         wordCount = len(fileLines) 
         threadCount = parseInt(parsedArgs.threads)
         threads = newSeq[Thread[tuple[threadId: int, threadArguments: VafThreadArguments]]](threadCount)
@@ -129,11 +130,16 @@ try:
         postData: postData,
         requestMethod: requestMethod,
         urlencode: parsedArgs.urlencode,
+        wordlistFile: wordlist,
+        suffixes: suffixes,
+        prefixes: prefixes,
         printurl: parsedArgs.printurl,
         output: parsedArgs.output,
         printifreflexive: parsedArgs.printifreflexive,
         debug: parsedArgs.debug
     )
+
+    prepareWordlist(fuzzData)
 
     if parsedArgs.debug:
         log("debug", "wordCount: " & $wordCount)
@@ -141,34 +147,36 @@ try:
         log("debug", "wordCountPerThread: " & $wordCountPerThread)
         log("debug", "remainingWordCount: " & $remainingWordCount)
 
-    proc threadFunction(data: tuple[threadId: int, threadArguments: VafThreadArguments]) {.thread.} =
-        var client: HttpClient = newHttpClient()
-        var threadData: VafThreadArguments = data.threadArguments
-        if threadData.fuzzData.debug:
-            echo "ThreadID: " & $data.threadId & " | got " & $len(threadData.words) & " words"
-        for threadWord in threadData.words:
-            let word = threadWord.replace("\r", "")
-            if threadData.fuzzData.debug:
-                log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & word)
-            fuzz(word, client, threadData.fuzzData)
 
-    var i = 0
-    for thread in threads.mitems:
-        var startIndex = i*wordCountPerThread
-        var endIndex = i*wordCountPerThread+wordCountPerThread-1
-        if i == threadCount-1:
-            endIndex += remainingWordCount
-        var threadArguments: VafThreadArguments = VafThreadArguments(
-            fuzzData: fuzzData,
-            words: fileLines[startIndex..endIndex] 
-        )
-        if parsedArgs.debug:
-            log("debug", "Creating thread with ID " & $i & " with indexes " & $startIndex & " -> " & $endIndex)
 
-        createThread(thread, threadFunction, (i, threadArguments))
-        i += 1
+    # proc threadFunction(data: tuple[threadId: int, threadArguments: VafThreadArguments]) {.thread.} =
+    #     var client: HttpClient = newHttpClient()
+    #     var threadData: VafThreadArguments = data.threadArguments
+    #     if threadData.fuzzData.debug:
+    #         echo "ThreadID: " & $data.threadId & " | got " & $len(threadData.words) & " words"
+    #     for threadWord in threadData.words:
+    #         let word = threadWord.replace("\r", "")
+    #         if threadData.fuzzData.debug:
+    #             log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & word)
+    #         fuzz(word, client, threadData.fuzzData)
 
-    joinThreads(threads)
+    # var i = 0
+    # for thread in threads.mitems:
+    #     var startIndex = i*wordCountPerThread
+    #     var endIndex = i*wordCountPerThread+wordCountPerThread-1
+    #     if i == threadCount-1:
+    #         endIndex += remainingWordCount
+    #     var threadArguments: VafThreadArguments = VafThreadArguments(
+    #         fuzzData: fuzzData,
+    #         words: fileLines[startIndex..endIndex] 
+    #     )
+    #     if parsedArgs.debug:
+    #         log("debug", "Creating thread with ID " & $i & " with indexes " & $startIndex & " -> " & $endIndex)
+
+    #     createThread(thread, threadFunction, (i, threadArguments))
+    #     i += 1
+
+    # joinThreads(threads)
 
     # if not isNil(strm):
     #     while strm.readLine(line):
