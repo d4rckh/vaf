@@ -146,6 +146,7 @@ try:
                 if threadData.fuzzData.debug:
                     log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & line)
                 fuzz(line, client, threadData.fuzzData)
+        strm.close()
 
     var i = 0
     for thread in threads.mitems:
