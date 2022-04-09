@@ -8,6 +8,7 @@ type
         wordlistFile*: string
         prefixes*: seq[string]
         suffixes*: seq[string]
+        threadcount*: int
         urlencode*: bool
         printurl*: bool
         output*: string

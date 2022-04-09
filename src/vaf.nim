@@ -134,12 +134,13 @@ try:
         suffixes: suffixes,
         prefixes: prefixes,
         printurl: parsedArgs.printurl,
+        threadcount: threadCount,
         output: parsedArgs.output,
         printifreflexive: parsedArgs.printifreflexive,
         debug: parsedArgs.debug
     )
 
-    prepareWordlist(fuzzData)
+    discard prepareWordlist(fuzzData)
 
     if parsedArgs.debug:
         log("debug", "wordCount: " & $wordCount)
