@@ -87,7 +87,6 @@ try:
     log("header", fmt"Results")
     
     proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments): void =
-        echo word
         var urlToRequest: string = args.url.replace("[]", word)
         var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
         var fuzzResult: VafFuzzResult = VafFuzzResult(
