@@ -33,13 +33,16 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     var line = ""
     var i = 0
 
-    log("info", fmt"Parsing wordlist..... this might take a while if your wordlist is large.")
+    log("info", fmt"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.\n")
 
     if not isNil(strm):
         while strm.readLine(line):
             for prefix in prefixes:
                 for suffix in suffixes:
-                    var word = prefix & line & suffix
+                    var word = newStringOfCap(prefix.len + line.len + suffix.len)
+                    word.add(prefix)
+                    word.add(line)
+                    word.add(suffix)
                     if urlencode:
                         word = encodeUrl(word, true)
                     wordlistStreams[i].writeLine(word)

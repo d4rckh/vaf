@@ -84,7 +84,7 @@ try:
     echo ""
     log("header", fmt"Results")
     
-    proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments): void =
+    proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments, threadId: int): void =
         var urlToRequest: string = args.url.replace("[]", word)
         var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
         var fuzzResult: VafFuzzResult = VafFuzzResult(
@@ -97,7 +97,7 @@ try:
             responseTime: resp.responseTime
         )
         proc doLog() = 
-            printResponse(fuzzResult)
+            printResponse(fuzzResult, threadId)
             if not (args.output == ""):
                 saveTofile(fuzzResult, args.output)
 
@@ -145,7 +145,7 @@ try:
             while strm.readLine(line):
                 if threadData.fuzzData.debug:
                     log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & line)
-                fuzz(line, client, threadData.fuzzData)
+                fuzz(line, client, threadData.fuzzData, data.threadId)
         strm.close()
 
     var i = 0
