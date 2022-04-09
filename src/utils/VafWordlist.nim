@@ -33,6 +33,8 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     var line = ""
     var i = 0
 
+    log("info", fmt"Parsing wordlist..... this might take a while if your wordlist is large.")
+
     if not isNil(strm):
         while strm.readLine(line):
             for prefix in prefixes:

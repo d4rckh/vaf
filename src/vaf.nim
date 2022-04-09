@@ -138,7 +138,7 @@ try:
         
         if threadData.fuzzData.debug:
             echo "ThreadID: " & $data.threadId & " | got to deal with the " & threadData.wordlistFile & " wordlist"
-        echo threadData.wordlistFile
+
         var strm = newFileStream(threadData.wordlistFile, fmRead)
         var line = ""
         if not isNil(strm):
