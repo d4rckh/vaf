@@ -1,0 +1,77 @@
+name: 'Build and Release'
+on:
+  push:
+    tags:
+    - 'v*'
+    - 'beta-v*'
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Generate release changelog"
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: changelog
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - name: Create Release For Tag
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: ${{ needs.changelog.outputs.changelog }}
+        draft: false
+        prerelease: ${{ contains(github.ref, 'beta') }}
+
+  build:
+    name: Build Executables
+    runs-on: ${{ matrix.os }}
+    needs: create_release
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-latest
+            OUT_FILE_NAME: vaf
+            ASSET_MIME: application/octet-stream
+          - os: windows-latest
+            OUT_FILE_NAME: vaf.exe
+            ASSET_MIME: application/vnd.microsoft.portable-executable
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup nim
+        uses: iffy/install-nim@v4.1.1
+      - name: Build with nimble for ${{ runner.os }}
+        run: nimble build -y
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: './${{ matrix.OUT_FILE_NAME }}'
+          asset_name: '${{runner.os}}-${{ matrix.OUT_FILE_NAME }}'
+          asset_content_type: '${{ matrix.ASSET_MIME }}'
+
+  purge_release_if_failed:
+    name: Delete release if build failed
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ failure() || cancelled() }}
+    steps:
+    - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        delete_release: true
+        tag_name: ${{ github.ref_name }}
