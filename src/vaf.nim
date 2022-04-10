@@ -29,7 +29,7 @@ let p = newParser("vaf"):
   option("-m", "--method", default=some("GET"), help="the method to use PSOT/GET")
   option("-g", "--grep", default=some(""), help="greps for a string in the response")
   option("-o", "--output", default=some(""), help="Output the results in a file")
-  option("-t", "--threads", default=some("1"), help="The amount of threads to use")
+  option("-t", "--threads", default=some("5"), help="The amount of threads to use")
   flag("-v", "--version", help="get version information")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
