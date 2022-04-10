@@ -1,8 +1,9 @@
-import VafColors
-import VafFuzzResult
 import strformat
 import uri
 import strutils
+
+import VafColors
+import VafFuzzResult
 
 proc log*(logType: string, logMessage: string): void = 
     if logType == "info":

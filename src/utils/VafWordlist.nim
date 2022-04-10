@@ -1,8 +1,7 @@
-import std/streams
 import os
 import strformat
 import uri
-import std/random
+import std/[random, streams]
 
 import VafUtils
 import VafLogger
