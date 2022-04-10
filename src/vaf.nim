@@ -51,8 +51,8 @@ try:
     var requestMethod: string = parsedArgs.method.toUpper()
     var postData: string = parsedArgs.postdata
     var grep: string = parsedArgs.grep
-    var displayPostData: string = postData.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
-    var displayUrl: string = url.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
+    var displayPostData: string = postData.replace("[]", fmt"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
+    var displayUrl: string = url.replace("[]", fmt"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
 
     if url == "" or wordlist == "":
         log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
@@ -72,22 +72,22 @@ try:
 
     echo ""
     log("header", fmt"Argument summary")
-    log("info", fmt"Printing on status: {khaki}{printOnStatus}")
-    log("info", fmt"Target URL:         {khaki}{displayUrl}")
+    log("info", fmt"Printing on status: {KHAKI}{printOnStatus}")
+    log("info", fmt"Target URL:         {KHAKI}{displayUrl}")
     if requestMethod == "POST":
-        log("info", fmt"Post Data:          {khaki}{displayPostData}")
-    log("info", fmt"Method:             {khaki}{requestMethod}")
+        log("info", fmt"Post Data:          {KHAKI}{displayPostData}")
+    log("info", fmt"Method:             {KHAKI}{requestMethod}")
     if not ( grep == "" ): 
-        log("info", fmt"Grep:               {khaki}{grep}")
-    log("info", fmt"Using Wordlist:     {khaki}{wordlist}")
+        log("info", fmt"Grep:               {KHAKI}{grep}")
+    log("info", fmt"Using Wordlist:     {KHAKI}{wordlist}")
     if not ( parsedArgs.prefix == ""):  
-        log("info", fmt"Using prefixes:     {khaki}{parsedArgs.prefix}")
+        log("info", fmt"Using prefixes:     {KHAKI}{parsedArgs.prefix}")
     if not ( parsedArgs.suffix == ""):  
-        log("info", fmt"Using suffixes:     {khaki}{parsedArgs.suffix}")
-    log("info", fmt"Print if reflexive: {khaki}{parsedArgs.printifreflexive}")
-    log("info", fmt"Url Encode:         {khaki}{parsedArgs.urlencode}")
+        log("info", fmt"Using suffixes:     {KHAKI}{parsedArgs.suffix}")
+    log("info", fmt"Print if reflexive: {KHAKI}{parsedArgs.printifreflexive}")
+    log("info", fmt"Url Encode:         {KHAKI}{parsedArgs.urlencode}")
     if not ( parsedArgs.output == ""):  
-        log("info", fmt"Output file:        {khaki}{parsedArgs.output}")
+        log("info", fmt"Output file:        {KHAKI}{parsedArgs.output}")
     echo ""
     log("header", fmt"Results")
     
@@ -164,7 +164,7 @@ try:
             wordlistFile: wordlistFiles[i] 
         )
         createThread(thread, threadFunction, (i, threadArguments))
-        i += 1
+        i += 1  
 
     joinThreads(threads)
     cleanWordlists(wordlistFiles)
