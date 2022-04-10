@@ -8,6 +8,11 @@ import VafUtils
 import VafLogger
 import VafFuzzArguments
 
+proc cleanWordlists*(wordlistFiles: seq[string]) =
+    log("info", "Cleaning up...")
+    for wordlist in wordlistFiles:
+        removeFile(wordlist)
+
 proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     let wordlistFile = fuzzArguments.wordlistFile
     let prefixes = fuzzArguments.prefixes
@@ -33,7 +38,7 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     var line = ""
     var i = 0
 
-    log("info", fmt"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.\n")
+    log("info", fmt"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.")
 
     if not isNil(strm):
         while strm.readLine(line):

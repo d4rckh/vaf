@@ -1,10 +1,14 @@
+import strformat
+
+import VafCompileConsts
+
 proc printBanner*(): void =
-  echo """ 
+  echo fmt""" 
                      _____ 
       ___  _______ _/ ____\
       \  \/ /\__  \\   __\ 
        \   /  / __ \|  |    
         \_/  (____  /__|   
-                  \/ v1.9.0-threads
-            by d4rckh  
+                  \/ {TAG}
+            https://github.com/d4rckh/vaf  
 """

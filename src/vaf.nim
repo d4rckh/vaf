@@ -1,3 +1,4 @@
+import system
 import strformat
 import strutils
 import uri
@@ -16,6 +17,7 @@ import utils/VafBanner
 import utils/VafOutput
 import utils/VafThreadArguments
 import utils/VafWordlist
+import utils/VafCompileConsts
 
 printBanner()
 
@@ -30,6 +32,7 @@ let p = newParser("vaf"):
   option("-g", "--grep", default=some(""), help="greps for a string in the response")
   option("-o", "--output", default=some(""), help="Output the results in a file")
   option("-t", "--threads", default=some("1"), help="The amount of threads to use")
+  flag("-v", "--version", help="get version information")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
   flag("-pu", "--printurl", help="prints the url that has been requested")
@@ -38,6 +41,10 @@ let p = newParser("vaf"):
 try:
     var parsedArgs = p.parse(commandLineParams())
 
+    if parsedArgs.version:
+        echo fmt"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
+        quit(QuitSuccess)
+    
     var url: string = parsedArgs.url
     var wordlist: string = parsedArgs.wordlist
     var printOnStatus: string = parsedArgs.status
@@ -160,7 +167,7 @@ try:
         i += 1
 
     joinThreads(threads)
-
+    cleanWordlists(wordlistFiles)
 except ShortCircuit as e:
   if e.flag == "argparse_help":
     echo p.help
