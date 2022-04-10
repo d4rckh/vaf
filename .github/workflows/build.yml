@@ -62,3 +62,16 @@ jobs:
           asset_path: './${{ matrix.OUT_FILE_NAME }}'
           asset_name: '${{runner.os}}-${{ matrix.OUT_FILE_NAME }}'
           asset_content_type: '${{ matrix.ASSET_MIME }}'
+
+  purge_release_if_failed:
+    name: Delete release if build failed
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ failure() || cancelled() }}
+    steps:
+    - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        delete_release: true
+        tag_name: ${{ github.ref_name }}
