@@ -7,15 +7,13 @@ import os
 import argparse
 import std/streams
 
-import utils/VafResponse
+import types/[VafResponse, VafFuzzResult, VafThreadArguments, VafFuzzArguments]
+
 import utils/VafLogger
 import utils/VafHttpClient
-import utils/VafFuzzResult
-import utils/VafFuzzArguments
 import utils/VafColors
 import utils/VafBanner
 import utils/VafOutput
-import utils/VafThreadArguments
 import utils/VafWordlist
 import utils/VafCompileConsts
 

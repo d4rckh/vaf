@@ -1,6 +1,6 @@
 import strformat
 
-import VafFuzzResult
+import ../types/VafFuzzResult
 
 proc saveToFile*(response: VafFuzzResult, outFile: string): void = 
     let f = open(outFile, fmAppend)

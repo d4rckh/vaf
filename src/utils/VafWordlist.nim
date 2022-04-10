@@ -3,9 +3,10 @@ import strformat
 import uri
 import std/[random, streams]
 
+import ../types/VafFuzzArguments
+
 import VafUtils
 import VafLogger
-import VafFuzzArguments
 
 proc cleanWordlists*(wordlistFiles: seq[string]) =
     log("info", "Cleaning up...")

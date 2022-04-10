@@ -1,7 +1,7 @@
 import std/[times]
 import httpclient
 
-import VafResponse
+import ../types/VafResponse
 
 proc makeRequest*(url: string, requestType: string, postData: string, client: HttpClient): VafResponse = 
     var response: Response = nil

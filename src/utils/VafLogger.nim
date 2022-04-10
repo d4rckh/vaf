@@ -3,7 +3,7 @@ import uri
 import strutils
 
 import VafColors
-import VafFuzzResult
+import ../types/VafFuzzResult
 
 proc log*(logType: string, logMessage: string): void = 
     if logType == "info":
