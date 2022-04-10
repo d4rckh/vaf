@@ -3,7 +3,7 @@ import strformat
 import VafCompileConsts
 
 proc printBanner*(): void =
-  echo fmt""" 
+  echo &""" 
                      _____ 
       ___  _______ _/ ____\
       \  \/ /\__  \\   __\ 

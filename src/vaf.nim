@@ -40,7 +40,7 @@ try:
     var parsedArgs = p.parse(commandLineParams())
 
     if parsedArgs.version:
-        echo fmt"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
+        echo &"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
         quit(QuitSuccess)
     
     var url: string = parsedArgs.url
@@ -49,8 +49,8 @@ try:
     var requestMethod: string = parsedArgs.method.toUpper()
     var postData: string = parsedArgs.postdata
     var grep: string = parsedArgs.grep
-    var displayPostData: string = postData.replace("[]", fmt"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
-    var displayUrl: string = url.replace("[]", fmt"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
+    var displayPostData: string = postData.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
+    var displayUrl: string = url.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
 
     if url == "" or wordlist == "":
         log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
@@ -69,25 +69,25 @@ try:
         quit(1)
 
     echo ""
-    log("header", fmt"Argument summary")
-    log("info", fmt"Printing on status: {KHAKI}{printOnStatus}")
-    log("info", fmt"Target URL:         {KHAKI}{displayUrl}")
+    log("header", &"Argument summary")
+    log("info", &"Printing on status: {KHAKI}{printOnStatus}")
+    log("info", &"Target URL:         {KHAKI}{displayUrl}")
     if requestMethod == "POST":
-        log("info", fmt"Post Data:          {KHAKI}{displayPostData}")
-    log("info", fmt"Method:             {KHAKI}{requestMethod}")
+        log("info", &"Post Data:          {KHAKI}{displayPostData}")
+    log("info", &"Method:             {KHAKI}{requestMethod}")
     if not ( grep == "" ): 
-        log("info", fmt"Grep:               {KHAKI}{grep}")
-    log("info", fmt"Using Wordlist:     {KHAKI}{wordlist}")
+        log("info", &"Grep:               {KHAKI}{grep}")
+    log("info", &"Using Wordlist:     {KHAKI}{wordlist}")
     if not ( parsedArgs.prefix == ""):  
-        log("info", fmt"Using prefixes:     {KHAKI}{parsedArgs.prefix}")
+        log("info", &"Using prefixes:     {KHAKI}{parsedArgs.prefix}")
     if not ( parsedArgs.suffix == ""):  
-        log("info", fmt"Using suffixes:     {KHAKI}{parsedArgs.suffix}")
-    log("info", fmt"Print if reflexive: {KHAKI}{parsedArgs.printifreflexive}")
-    log("info", fmt"Url Encode:         {KHAKI}{parsedArgs.urlencode}")
+        log("info", &"Using suffixes:     {KHAKI}{parsedArgs.suffix}")
+    log("info", &"Print if reflexive: {KHAKI}{parsedArgs.printifreflexive}")
+    log("info", &"Url Encode:         {KHAKI}{parsedArgs.urlencode}")
     if not ( parsedArgs.output == ""):  
-        log("info", fmt"Output file:        {KHAKI}{parsedArgs.output}")
+        log("info", &"Output file:        {KHAKI}{parsedArgs.output}")
     echo ""
-    log("header", fmt"Results")
+    log("header", &"Results")
     
     proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments, threadId: int): void =
         var urlToRequest: string = args.url.replace("[]", word)
