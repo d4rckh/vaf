@@ -12,10 +12,12 @@ proc log*(logType: string, logMessage: string): void =
     if logType == "header":
         echo bluey & "\t\t" & logMessage & resetcols & "\n"
     if logType == "error":
-        echo orange & "ERROR: " & logMessage & resetcols & "\n"
+        echo orange & "ERROR: " & logMessage & resetcols
+    if logType == "debug":
+        echo bluey & "DEBUG: " & logMessage & resetcols
 
 
-proc printResponse*(response: VafFuzzResult): void = 
+proc printResponse*(response: VafFuzzResult, threadId: int): void = 
     var urlDecoded: string = "" 
     var urlDisplay: string = ""
     var statusColor: string = khaki
@@ -27,5 +29,5 @@ proc printResponse*(response: VafFuzzResult): void =
         urlDisplay = urlDisplay.replace(response.word, fmt"{resetcols}{khaki}{response.word}{resetcols}{orange}")
     if "200" == statusCode or "201" == statusCode:
         statusColor = lightgreen
-    log("result", &"{resetcols}{statusColor}Status: {statusCode}; Length: {response.responseLength}; Time: {response.responseTime}ms\t{response.word} {orange}{urlDecoded} {urlDisplay} {resetcols}")
+    log("result", &"{resetcols}{statusColor}Thread #{threadId}: Status: {statusCode}; Length: {response.responseLength}; Time: {response.responseTime}ms\t{response.word} {orange}{urlDecoded} {urlDisplay} {resetcols}")
     

@@ -5,3 +5,5 @@ src/Vaf.exe
 vaf
 vaf.exe
 example_wordlists/
+# dev is dum dum
+src/*.dll

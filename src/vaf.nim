@@ -1,16 +1,23 @@
+import system
 import strformat
 import strutils
 import uri
+import httpclient
+import os
+import argparse
+import std/streams
+
 import utils/VafResponse
 import utils/VafLogger
 import utils/VafHttpClient
-import os
-import argparse
 import utils/VafFuzzResult
+import utils/VafFuzzArguments
 import utils/VafColors
 import utils/VafBanner
 import utils/VafOutput
-import std/streams
+import utils/VafThreadArguments
+import utils/VafWordlist
+import utils/VafCompileConsts
 
 printBanner()
 
@@ -24,13 +31,20 @@ let p = newParser("vaf"):
   option("-m", "--method", default=some("GET"), help="the method to use PSOT/GET")
   option("-g", "--grep", default=some(""), help="greps for a string in the response")
   option("-o", "--output", default=some(""), help="Output the results in a file")
+  option("-t", "--threads", default=some("1"), help="The amount of threads to use")
+  flag("-v", "--version", help="get version information")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
   flag("-pu", "--printurl", help="prints the url that has been requested")
+  flag("-dbg", "--debug", help="Prints a lot of debug information")
 
 try:
     var parsedArgs = p.parse(commandLineParams())
 
+    if parsedArgs.version:
+        echo fmt"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
+        quit(QuitSuccess)
+    
     var url: string = parsedArgs.url
     var wordlist: string = parsedArgs.wordlist
     var printOnStatus: string = parsedArgs.status
@@ -77,44 +91,83 @@ try:
     echo ""
     log("header", fmt"Results")
     
-    proc fuzz(word: string): void =
-        var urlToRequest: string = url.replace("[]", word)
-        var resp: VafResponse = makeRequest(urlToRequest, requestMethod, postData.replace("[]", word))
+    proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments, threadId: int): void =
+        var urlToRequest: string = args.url.replace("[]", word)
+        var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
         var fuzzResult: VafFuzzResult = VafFuzzResult(
             word: word, 
             statusCode: resp.statusCode, 
-            urlencoded: parsedArgs.urlencode, 
+            urlencoded: args.urlencode, 
             url: urlToRequest, 
-            printUrl: parsedArgs.printurl, 
+            printUrl: args.printurl, 
             responseLength: resp.responseLength,
             responseTime: resp.responseTime
         )
         proc doLog() = 
-            printResponse(fuzzResult)
-            if not (parsedArgs.output == ""):
-                saveTofile(fuzzResult, parsedArgs.output)
+            printResponse(fuzzResult, threadId)
+            if not (args.output == ""):
+                saveTofile(fuzzResult, args.output)
 
-        if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
-            (((word in resp.content) or decodeUrl(word) in resp.content) or not parsedArgs.printifreflexive) and 
-            (grep in resp.content):
+        if  ((args.printOnStatus in resp.statusCode) or (args.printOnStatus == "any")) and 
+            (((word in resp.content) or decodeUrl(word) in resp.content) or not args.printifreflexive) and 
+            (args.grep in resp.content):
             doLog()
-
-    var strm = newFileStream(wordlist, fmRead)
-    var line = ""
 
     let prefixes = parsedArgs.prefix.split(",")
     let suffixes = parsedArgs.suffix.split(",")
 
-    if not isNil(strm):
-        while strm.readLine(line):
-            for prefix in prefixes:
-                for suffix in suffixes:
-                    var word = prefix & line & suffix
-                    if parsedArgs.urlencode:
-                        word = encodeUrl(word, true)
-                    fuzz(word)
+    var fuzzData: VafFuzzArguments = VafFuzzArguments(
+        url: url,
+        grep: grep,
+        printOnStatus: printOnStatus,
+        postData: postData,
+        requestMethod: requestMethod,
+        urlencode: parsedArgs.urlencode,
+        wordlistFile: wordlist,
+        suffixes: suffixes,
+        prefixes: prefixes,
+        printurl: parsedArgs.printurl,
+        threadcount: parseInt(parsedArgs.threads),
+        output: parsedArgs.output,
+        printifreflexive: parsedArgs.printifreflexive,
+        debug: parsedArgs.debug
+    )
+
+    let wordlistFiles: seq[string] = prepareWordlist(fuzzData)
+
+    var
+        threadCount = len(wordlistFiles)
+        threads = newSeq[Thread[tuple[threadId: int, threadArguments: VafThreadArguments]]](threadCount)
+
+    proc threadFunction(data: tuple[threadId: int, threadArguments: VafThreadArguments]) {.thread.} =
+        var client: HttpClient = newHttpClient()
+        var threadData: VafThreadArguments = data.threadArguments
+        
+        if threadData.fuzzData.debug:
+            echo "ThreadID: " & $data.threadId & " | got to deal with the " & threadData.wordlistFile & " wordlist"
+
+        var strm = newFileStream(threadData.wordlistFile, fmRead)
+        var line = ""
+        if not isNil(strm):
+            while strm.readLine(line):
+                if threadData.fuzzData.debug:
+                    log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & line)
+                fuzz(line, client, threadData.fuzzData, data.threadId)
         strm.close()
 
+    var i = 0
+    for thread in threads.mitems:
+        if parsedArgs.debug:
+            log("debug", "Creating thread with ID " & $i)
+        var threadArguments: VafThreadArguments = VafThreadArguments(
+            fuzzData: fuzzData,
+            wordlistFile: wordlistFiles[i] 
+        )
+        createThread(thread, threadFunction, (i, threadArguments))
+        i += 1
+
+    joinThreads(threads)
+    cleanWordlists(wordlistFiles)
 except ShortCircuit as e:
   if e.flag == "argparse_help":
     echo p.help
