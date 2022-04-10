@@ -38,7 +38,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: create_release
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
           - os: ubuntu-latest
