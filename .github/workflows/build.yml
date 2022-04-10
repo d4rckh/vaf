@@ -38,7 +38,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: create_release
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -54,11 +54,11 @@ jobs:
       - name: Build with nimble for ${{ runner.os }}
         run: nimble build -y
       - name: Upload release assets
-        uses: actions/upload-release-assets@v1
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./{{ matrix.OUT_FILE_NAME }}
-          asset_name: ${{runner.os}}-${{ matrix.OUT_FILE_NAME }}
-          asset_content_type: ${{ matrix.ASSET_MIME }}
+          asset_path: './${{ matrix.OUT_FILE_NAME }}'
+          asset_name: '${{runner.os}}-${{ matrix.OUT_FILE_NAME }}'
+          asset_content_type: '${{ matrix.ASSET_MIME }}'
