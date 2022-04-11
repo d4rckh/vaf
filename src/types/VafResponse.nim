@@ -1,5 +1,5 @@
 type
-  VafResponse* = object
+  FuzzResponse* = object
     content*: string
     statusCode*: string
     responseLength*: int

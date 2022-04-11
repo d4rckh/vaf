@@ -3,7 +3,7 @@ import httpclient
 
 import ../types/VafResponse
 
-proc makeRequest*(url: string, requestType: string, postData: string, client: HttpClient): VafResponse = 
+proc makeRequest*(url: string, requestType: string, postData: string, client: HttpClient): FuzzResponse = 
     var response: Response = nil
     let time1 = now()
     if requestType == "GET":
@@ -14,5 +14,5 @@ proc makeRequest*(url: string, requestType: string, postData: string, client: Ht
         })
         response = client.request(url, httpMethod = HttpPost, headers = customHeaders, body = postData)
     let time2 = now()
-    return VafResponse(content: response.body, statusCode: response.status, responseLength: len(response.body), url: url, responseTime: (time2 - time1).inMilliseconds)
+    return FuzzResponse(content: response.body, statusCode: response.status, responseLength: len(response.body), url: url, responseTime: (time2 - time1).inMilliseconds)
     

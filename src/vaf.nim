@@ -3,9 +3,8 @@ import strformat
 import strutils
 import uri
 import httpclient
-import os
 import argparse
-import std/streams
+import std/[streams, terminal, os, times]
 
 import types/[VafResponse, VafFuzzResult, VafThreadArguments, VafFuzzArguments]
 
@@ -16,6 +15,8 @@ import utils/VafBanner
 import utils/VafOutput
 import utils/VafWordlist
 import utils/VafCompileConsts
+
+import utils/formatDuration
 
 printBanner()
 
@@ -90,10 +91,13 @@ try:
     echo ""
     log("header", &"Results")
     
+    var chan: Channel[(FuzzResult, FuzzResponse, int)]
+    chan.open()
+
     proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments, threadId: int): void =
         var urlToRequest: string = args.url.replace("[]", word)
-        var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
-        var fuzzResult: VafFuzzResult = VafFuzzResult(
+        var resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
+        var fuzzResult: FuzzResult = FuzzResult(
             word: word, 
             statusCode: resp.statusCode, 
             urlencoded: args.urlencode, 
@@ -102,15 +106,19 @@ try:
             responseLength: resp.responseLength,
             responseTime: resp.responseTime
         )
-        proc doLog() = 
-            printResponse(fuzzResult, threadId)
-            if not (args.output == ""):
-                saveTofile(fuzzResult, args.output)
+    
+        chan.send((fuzzResult, resp, threadId))
 
-        if  ((args.printOnStatus in resp.statusCode) or (args.printOnStatus == "any")) and 
-            (((word in resp.content) or decodeUrl(word) in resp.content) or not args.printifreflexive) and 
-            (args.grep in resp.content):
-            doLog()
+        #[
+            D:\Projects\2022\vaf\src\vaf.nim(109, 13) Error: type mismatch: got <Channel[void], FuzzResult>
+            but expected one of:
+            proc send[TMsg](c: var Channel[TMsg]; msg: sink TMsg)
+            first type mismatch at position: 2
+            required type for msg: sink TMsg
+            but expression 'fuzzResult' is of type: FuzzResult
+
+        ]#
+
 
     let prefixes = parsedArgs.prefix.split(",")
     let suffixes = parsedArgs.suffix.split(",")
@@ -132,7 +140,7 @@ try:
         debug: parsedArgs.debug
     )
 
-    let wordlistFiles: seq[string] = prepareWordlist(fuzzData)
+    let (wordlistFiles, wordlistsSize) = prepareWordlist(fuzzData)
 
     var
         threadCount = len(wordlistFiles)
@@ -165,7 +173,46 @@ try:
         createThread(thread, threadFunction, (i, threadArguments))
         i += 1  
 
+    var fuzzProgress = 0
+    var fuzzPercentage: int = 0
+    let timeStarted = now()
+
+    while true:
+        let tried = chan.tryRecv()
+        if tried.dataAvailable:
+
+            let (fuzzResult, resp, threadId) = tried.msg
+            
+            if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
+                (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or not parsedArgs.printifreflexive) and 
+                (parsedArgs.grep in resp.content):
+                printResponse(fuzzResult, threadId)
+                if not (parsedArgs.output == ""):
+                    saveTofile(fuzzResult, parsedArgs.output)
+    
+            inc fuzzProgress
+            fuzzPercentage = (fuzzProgress / wordlistsSize * 100).int
+
+            if fuzzProgress == wordlistsSize:
+                break    
+        
+        stdout.styledWriteLine(
+            fgRed, 
+            "0% ", 
+            fgWhite, 
+            '#'.repeat (fuzzPercentage/10).int, '-'.repeat (10 - (fuzzPercentage/10).int), 
+            fgYellow, " ", 
+            $fuzzPercentage, 
+            "% ", &"Time: {formatDuration(now() - timeStarted)}")
+
+        sleep(25)
+        cursorUp 1
+        eraseLine()
+
     joinThreads(threads)
+
+    log("success", &"Finished in {formatDuration(now() - timeStarted)}")
+
     cleanWordlists(wordlistFiles)
 except ShortCircuit as e:
   if e.flag == "argparse_help":

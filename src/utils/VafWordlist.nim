@@ -13,7 +13,7 @@ proc cleanWordlists*(wordlistFiles: seq[string]) =
     for wordlist in wordlistFiles:
         removeFile(wordlist)
 
-proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
+proc prepareWordlist*(fuzzArguments: VafFuzzArguments): (seq[string], int) =
     let wordlistFile = fuzzArguments.wordlistFile
     let prefixes = fuzzArguments.prefixes
     let suffixes = fuzzArguments.suffixes
@@ -38,9 +38,9 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     var strm = newFileStream(wordlistFile, fmRead)
     var line = ""
     var i = 0
+    var wordlistsSize = 0
 
     log("info", &"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.")
-
 
     if not isNil(strm):
         while strm.readLine(line):
@@ -53,6 +53,7 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
                     if urlencode:
                         word = encodeUrl(word, true)
                     wordlistStreams[i].writeLine(word)
+                    inc wordlistsSize
             inc i
             if i == threadcount:
                 i = 0
@@ -62,4 +63,4 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     for stream in wordlistStreams:
         stream.close()
     
-    return threadWordlists
+    return (threadWordlists, wordlistsSize)
