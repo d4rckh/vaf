@@ -1,5 +1,5 @@
 type
-  VafFuzzResult* = object
+  FuzzResult* = object
     word*: string
     statusCode*: string
     urlencoded*: bool

@@ -18,7 +18,7 @@ proc log*(logType: string, logMessage: string): void =
         echo &"{BLUEY}DEBUG: {logMessage}{RESETCOLS}"
 
 
-proc printResponse*(response: VafFuzzResult, threadId: int): void = 
+proc printResponse*(response: FuzzResult, threadId: int): void = 
     var urlDecoded: string = "" 
     var urlDisplay: string = ""
     var statusColor: string = KHAKI
