@@ -42,7 +42,6 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): (seq[string], int) =
 
     log("info", &"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.")
 
-
     if not isNil(strm):
         while strm.readLine(line):
             for prefix in prefixes:
