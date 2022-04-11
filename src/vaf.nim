@@ -7,15 +7,13 @@ import os
 import argparse
 import std/streams
 
-import utils/VafResponse
+import types/[VafResponse, VafFuzzResult, VafThreadArguments, VafFuzzArguments]
+
 import utils/VafLogger
 import utils/VafHttpClient
-import utils/VafFuzzResult
-import utils/VafFuzzArguments
 import utils/VafColors
 import utils/VafBanner
 import utils/VafOutput
-import utils/VafThreadArguments
 import utils/VafWordlist
 import utils/VafCompileConsts
 
@@ -25,13 +23,13 @@ let p = newParser("vaf"):
   option("-u", "--url", help="choose url, replace area to fuzz with []")
   option("-w", "--wordlist", help="choose the wordlist to use")
   option("-sc", "--status", default=some("200"), help="set on which status to print, set this param to 'any' to print on any status")
-  option("-pr", "--prefix", default=some(""), help="prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end")
+  option("-pf", "--prefix", default=some(""), help="prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end")
   option("-sf", "--suffix", default=some(""), help="suffix, e.g. use this for extensions if you are doing content discovery")
   option("-pd", "--postdata", default=some("{}"), help="only used if '-m post' is set")
   option("-m", "--method", default=some("GET"), help="the method to use PSOT/GET")
   option("-g", "--grep", default=some(""), help="greps for a string in the response")
   option("-o", "--output", default=some(""), help="Output the results in a file")
-  option("-t", "--threads", default=some("1"), help="The amount of threads to use")
+  option("-t", "--threads", default=some("5"), help="The amount of threads to use")
   flag("-v", "--version", help="get version information")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
@@ -42,7 +40,7 @@ try:
     var parsedArgs = p.parse(commandLineParams())
 
     if parsedArgs.version:
-        echo fmt"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
+        echo &"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
         quit(QuitSuccess)
     
     var url: string = parsedArgs.url
@@ -51,8 +49,8 @@ try:
     var requestMethod: string = parsedArgs.method.toUpper()
     var postData: string = parsedArgs.postdata
     var grep: string = parsedArgs.grep
-    var displayPostData: string = postData.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
-    var displayUrl: string = url.replace("[]", fmt"{resetcols}{orange}[]{resetcols}{khaki}")
+    var displayPostData: string = postData.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
+    var displayUrl: string = url.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
 
     if url == "" or wordlist == "":
         log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
@@ -71,25 +69,25 @@ try:
         quit(1)
 
     echo ""
-    log("header", fmt"Argument summary")
-    log("info", fmt"Printing on status: {khaki}{printOnStatus}")
-    log("info", fmt"Target URL:         {khaki}{displayUrl}")
+    log("header", &"Argument summary")
+    log("info", &"Printing on status: {KHAKI}{printOnStatus}")
+    log("info", &"Target URL:         {KHAKI}{displayUrl}")
     if requestMethod == "POST":
-        log("info", fmt"Post Data:          {khaki}{displayPostData}")
-    log("info", fmt"Method:             {khaki}{requestMethod}")
+        log("info", &"Post Data:          {KHAKI}{displayPostData}")
+    log("info", &"Method:             {KHAKI}{requestMethod}")
     if not ( grep == "" ): 
-        log("info", fmt"Grep:               {khaki}{grep}")
-    log("info", fmt"Using Wordlist:     {khaki}{wordlist}")
+        log("info", &"Grep:               {KHAKI}{grep}")
+    log("info", &"Using Wordlist:     {KHAKI}{wordlist}")
     if not ( parsedArgs.prefix == ""):  
-        log("info", fmt"Using prefixes:     {khaki}{parsedArgs.prefix}")
+        log("info", &"Using prefixes:     {KHAKI}{parsedArgs.prefix}")
     if not ( parsedArgs.suffix == ""):  
-        log("info", fmt"Using suffixes:     {khaki}{parsedArgs.suffix}")
-    log("info", fmt"Print if reflexive: {khaki}{parsedArgs.printifreflexive}")
-    log("info", fmt"Url Encode:         {khaki}{parsedArgs.urlencode}")
+        log("info", &"Using suffixes:     {KHAKI}{parsedArgs.suffix}")
+    log("info", &"Print if reflexive: {KHAKI}{parsedArgs.printifreflexive}")
+    log("info", &"Url Encode:         {KHAKI}{parsedArgs.urlencode}")
     if not ( parsedArgs.output == ""):  
-        log("info", fmt"Output file:        {khaki}{parsedArgs.output}")
+        log("info", &"Output file:        {KHAKI}{parsedArgs.output}")
     echo ""
-    log("header", fmt"Results")
+    log("header", &"Results")
     
     proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments, threadId: int): void =
         var urlToRequest: string = args.url.replace("[]", word)
@@ -164,7 +162,7 @@ try:
             wordlistFile: wordlistFiles[i] 
         )
         createThread(thread, threadFunction, (i, threadArguments))
-        i += 1
+        i += 1  
 
     joinThreads(threads)
     cleanWordlists(wordlistFiles)
