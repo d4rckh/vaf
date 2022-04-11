@@ -197,15 +197,15 @@ try:
                 break    
         
         stdout.styledWriteLine(
-            fgRed, 
+            fgWhite, "Progress: ", fgRed, 
             "0% ", 
             fgWhite, 
             '#'.repeat (fuzzPercentage/10).int, '-'.repeat (10 - (fuzzPercentage/10).int), 
             fgYellow, " ", 
             $fuzzPercentage, 
-            "% ", &"Time: {formatDuration(now() - timeStarted)}")
+            "% ", fgWhite, "Time: ", fgYellow, formatDuration(now() - timeStarted))
 
-        sleep(25)
+        sleep(1000)
         cursorUp 1
         eraseLine()
 
