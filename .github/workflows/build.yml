@@ -4,6 +4,7 @@ on:
     tags:
     - 'v*'
     - 'beta-v*'
+    - 'v*-beta'
 
 jobs:
   changelog:
