@@ -24,6 +24,7 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     if fuzzArguments.debug:
         log("debug", &"Storing temporary wordlists in temp dir: {tempdir}")
 
+
     randomize()
     let x = rand(1000)
     var wordlistStreams: seq[File] = @[]
@@ -39,6 +40,7 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     var i = 0
 
     log("info", &"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.")
+
 
     if not isNil(strm):
         while strm.readLine(line):

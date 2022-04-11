@@ -41,6 +41,7 @@ try:
 
     if parsedArgs.version:
         echo &"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
+
         quit(QuitSuccess)
     
     var url: string = parsedArgs.url

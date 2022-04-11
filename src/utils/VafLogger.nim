@@ -30,5 +30,4 @@ proc printResponse*(response: VafFuzzResult, threadId: int): void =
         urlDisplay = urlDisplay.replace(response.word, &"{RESETCOLS}{KHAKI}{response.word}{RESETCOLS}{ORANGE}")
     if "200" == statusCode or "201" == statusCode:
         statusColor = LIGHTGREEN
-    log("result", &"{RESETCOLS}{statusColor}Thread #{threadId}: Status: {statusCode}; Length: {response.responseLength}; Time: {response.responseTime}ms\t{response.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")
-    
+    log("result", &"{RESETCOLS}{statusColor}Thread #{threadId}: Status: {statusCode}; Length: {response.responseLength}; Time: {response.responseTime}ms\t{response.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    
