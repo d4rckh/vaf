@@ -193,21 +193,21 @@ try:
             inc fuzzProgress
             fuzzPercentage = (fuzzProgress / wordlistsSize * 100).int
 
-            if fuzzProgress == wordlistsSize:
-                break    
-        
-        stdout.styledWriteLine(
-            fgWhite, "Progress: ", fgRed, 
-            "0% ", 
-            fgWhite, 
-            '#'.repeat (fuzzPercentage/10).int, '-'.repeat (10 - (fuzzPercentage/10).int), 
-            fgYellow, " ", 
-            $fuzzPercentage, 
-            "% ", fgWhite, "Time: ", fgYellow, formatDuration(now() - timeStarted))
+            stdout.styledWriteLine(
+                fgWhite, "Progress: ", fgRed, 
+                "0% ", 
+                fgWhite, 
+                '#'.repeat (fuzzPercentage/10).int, '-'.repeat (10 - (fuzzPercentage/10).int), 
+                fgYellow, " ", 
+                $fuzzPercentage, 
+                "% ", fgWhite, "Time: ", fgYellow, formatDuration(now() - timeStarted))
 
-        sleep(1000)
-        cursorUp 1
-        eraseLine()
+            cursorUp 1
+            eraseLine()
+
+            if fuzzProgress == wordlistsSize:
+                break
+
 
     joinThreads(threads)
 
