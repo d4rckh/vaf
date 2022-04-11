@@ -182,28 +182,31 @@ try:
         if tried.dataAvailable:
 
             let (fuzzResult, resp, threadId) = tried.msg
-            
-            if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
-                (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or not parsedArgs.printifreflexive) and 
-                (parsedArgs.grep in resp.content):
-                printResponse(fuzzResult, threadId)
-                if not (parsedArgs.output == ""):
-                    saveTofile(fuzzResult, parsedArgs.output)
-    
+
             inc fuzzProgress
             fuzzPercentage = (fuzzProgress / wordlistsSize * 100).int
 
-            stdout.styledWriteLine(
-                fgWhite, "Progress: ", fgRed, 
-                "0% ", 
-                fgWhite, 
-                '#'.repeat (fuzzPercentage/10).int, '-'.repeat (10 - (fuzzPercentage/10).int), 
-                fgYellow, " ", 
-                $fuzzPercentage, 
-                "% ", fgWhite, "Time: ", fgYellow, formatDuration(now() - timeStarted))
+            if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
+                (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or not parsedArgs.printifreflexive) and 
+                (parsedArgs.grep in resp.content):
 
-            cursorUp 1
-            eraseLine()
+                cursorUp 1
+                eraseLine()
+                
+                printResponse(fuzzResult, threadId)
+                if not (parsedArgs.output == ""):
+                    saveTofile(fuzzResult, parsedArgs.output)
+
+                stdout.styledWriteLine(
+                    fgWhite, "Progress: ", fgRed, 
+                    "0% ", 
+                    fgWhite, 
+                    '#'.repeat (fuzzPercentage/10).int, '-'.repeat (10 - (fuzzPercentage/10).int), 
+                    fgYellow, " ", 
+                    $fuzzPercentage, 
+                    "% ", fgWhite, "Time: ", fgYellow, formatDuration(now() - timeStarted))
+
+
 
             if fuzzProgress == wordlistsSize:
                 break
