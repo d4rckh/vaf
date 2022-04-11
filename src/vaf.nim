@@ -5,7 +5,7 @@ import uri
 import httpclient
 import os
 import argparse
-import std/streams
+import std/[streams, terminal, os]
 
 import types/[VafResponse, VafFuzzResult, VafThreadArguments, VafFuzzArguments]
 
@@ -90,6 +90,9 @@ try:
     echo ""
     log("header", &"Results")
     
+    var chan: Channel[VafFuzzResult]
+    chan.open()
+
     proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments, threadId: int): void =
         var urlToRequest: string = args.url.replace("[]", word)
         var resp: VafResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
@@ -102,6 +105,19 @@ try:
             responseLength: resp.responseLength,
             responseTime: resp.responseTime
         )
+    
+        chan.send(fuzzResult)
+
+        #[
+            D:\Projects\2022\vaf\src\vaf.nim(109, 13) Error: type mismatch: got <Channel[void], VafFuzzResult>
+            but expected one of:
+            proc send[TMsg](c: var Channel[TMsg]; msg: sink TMsg)
+            first type mismatch at position: 2
+            required type for msg: sink TMsg
+            but expression 'fuzzResult' is of type: VafFuzzResult
+
+        ]#
+
         proc doLog() = 
             printResponse(fuzzResult, threadId)
             if not (args.output == ""):
@@ -132,7 +148,7 @@ try:
         debug: parsedArgs.debug
     )
 
-    let wordlistFiles: seq[string] = prepareWordlist(fuzzData)
+    let (wordlistFiles, wordlistsSize) = prepareWordlist(fuzzData)
 
     var
         threadCount = len(wordlistFiles)
@@ -165,8 +181,33 @@ try:
         createThread(thread, threadFunction, (i, threadArguments))
         i += 1  
 
+    var fuzzProgress = 0
+    var fuzzPercentage: int = 0
+
+    while true:
+        let tried = chan.tryRecv()
+        if tried.dataAvailable:
+            inc fuzzProgress
+            fuzzPercentage = (fuzzProgress / wordlistsSize * 100).int
+            if fuzzProgress == wordlistsSize:
+                cleanWordlists(wordlistFiles)
+                break    
+
+        stdout.styledWriteLine(
+            fgRed, 
+            "0% ", 
+            fgWhite, 
+            '#'.repeat fuzzPercentage, '-'.repeat (100 - fuzzPercentage), 
+            if fuzzPercentage > 50: fgGreen else: fgYellow, 
+            "\t", 
+            $fuzzPercentage , 
+            "%")
+        
+        sleep(25)
+        cursorUp 1
+        eraseLine()
+
     joinThreads(threads)
-    cleanWordlists(wordlistFiles)
 except ShortCircuit as e:
   if e.flag == "argparse_help":
     echo p.help
