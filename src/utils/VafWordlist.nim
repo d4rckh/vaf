@@ -1,12 +1,12 @@
-import std/streams
 import os
 import strformat
 import uri
-import std/random
+import std/[random, streams]
+
+import ../types/VafFuzzArguments
 
 import VafUtils
 import VafLogger
-import VafFuzzArguments
 
 proc cleanWordlists*(wordlistFiles: seq[string]) =
     log("info", "Cleaning up...")
@@ -22,7 +22,8 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     let tempdir = getTempDir()
 
     if fuzzArguments.debug:
-        log("debug", fmt"Storing temporary wordlists in temp dir: {tempdir}")
+        log("debug", &"Storing temporary wordlists in temp dir: {tempdir}")
+
 
     randomize()
     let x = rand(1000)
@@ -30,7 +31,7 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     var threadWordlists: seq[string] = @[]
 
     for tid in countTo(threadcount - 1):
-        let fn = fmt"{tempdir}/vaf{x}_thread{tid}.txt"
+        let fn = &"{tempdir}/vaf{x}_thread{tid}.txt"
         wordlistStreams.add(open(fn, fmAppend))
         threadWordlists.add(fn)
 
@@ -38,7 +39,8 @@ proc prepareWordlist*(fuzzArguments: VafFuzzArguments): seq[string] =
     var line = ""
     var i = 0
 
-    log("info", fmt"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.")
+    log("info", &"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.")
+
 
     if not isNil(strm):
         while strm.readLine(line):

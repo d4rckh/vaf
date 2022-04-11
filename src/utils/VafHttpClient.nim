@@ -1,8 +1,7 @@
-import httpclient
-import VafResponse
 import std/[times]
+import httpclient
 
-# let client = newHttpClient()
+import ../types/VafResponse
 
 proc makeRequest*(url: string, requestType: string, postData: string, client: HttpClient): VafResponse = 
     var response: Response = nil

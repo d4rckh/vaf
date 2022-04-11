@@ -1,4 +1,3 @@
-
 type
   VafResponse* = object
     content*: string
