@@ -1,5 +1,5 @@
 type
-    VafFuzzArguments* = object
+    FuzzArguments* = object
         url*: string
         grep*: string
         printOnStatus*: string

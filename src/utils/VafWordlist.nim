@@ -13,7 +13,7 @@ proc cleanWordlists*(wordlistFiles: seq[string]) =
     for wordlist in wordlistFiles:
         removeFile(wordlist)
 
-proc prepareWordlist*(fuzzArguments: VafFuzzArguments): (seq[string], int) =
+proc prepareWordlist*(fuzzArguments: FuzzArguments): (seq[string], int) =
     let wordlistFile = fuzzArguments.wordlistFile
     let prefixes = fuzzArguments.prefixes
     let suffixes = fuzzArguments.suffixes

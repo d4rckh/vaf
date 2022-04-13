@@ -1,6 +1,6 @@
 import VafFuzzArguments
 
 type
-    VafThreadArguments* = object
-        fuzzData*: VafFuzzArguments
+    ThreadArguments* = object
+        fuzzData*: FuzzArguments
         wordlistFile*: string

@@ -94,7 +94,7 @@ try:
     var chan: Channel[(FuzzResult, FuzzResponse, int)]
     chan.open()
 
-    proc fuzz(word: string, client: HttpClient, args: VafFuzzArguments, threadId: int): void =
+    proc fuzz(word: string, client: HttpClient, args: FuzzArguments, threadId: int): void =
         var urlToRequest: string = args.url.replace("[]", word)
         var resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
         var fuzzResult: FuzzResult = FuzzResult(
@@ -123,7 +123,7 @@ try:
     let prefixes = parsedArgs.prefix.split(",")
     let suffixes = parsedArgs.suffix.split(",")
 
-    var fuzzData: VafFuzzArguments = VafFuzzArguments(
+    var fuzzData: FuzzArguments = FuzzArguments(
         url: url,
         grep: grep,
         printOnStatus: printOnStatus,
@@ -144,11 +144,11 @@ try:
 
     var
         threadCount = len(wordlistFiles)
-        threads = newSeq[Thread[tuple[threadId: int, threadArguments: VafThreadArguments]]](threadCount)
+        threads = newSeq[Thread[tuple[threadId: int, threadArguments: ThreadArguments]]](threadCount)
 
-    proc threadFunction(data: tuple[threadId: int, threadArguments: VafThreadArguments]) {.thread.} =
+    proc threadFunction(data: tuple[threadId: int, threadArguments: ThreadArguments]) {.thread.} =
         var client: HttpClient = newHttpClient()
-        var threadData: VafThreadArguments = data.threadArguments
+        var threadData: ThreadArguments = data.threadArguments
         
         if threadData.fuzzData.debug:
             echo "ThreadID: " & $data.threadId & " | got to deal with the " & threadData.wordlistFile & " wordlist"
@@ -166,7 +166,7 @@ try:
     for thread in threads.mitems:
         if parsedArgs.debug:
             log("debug", "Creating thread with ID " & $i)
-        var threadArguments: VafThreadArguments = VafThreadArguments(
+        var threadArguments: ThreadArguments = ThreadArguments(
             fuzzData: fuzzData,
             wordlistFile: wordlistFiles[i] 
         )
@@ -178,38 +178,40 @@ try:
     let timeStarted = now()
 
     while true:
+
+
         let tried = chan.tryRecv()
         if tried.dataAvailable:
 
             let (fuzzResult, resp, threadId) = tried.msg
 
-            inc fuzzProgress
-            fuzzPercentage = (fuzzProgress / wordlistsSize * 100).int
-
             if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
                 (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or not parsedArgs.printifreflexive) and 
                 (parsedArgs.grep in resp.content):
 
-                cursorUp 1
-                eraseLine()
                 
                 printResponse(fuzzResult, threadId)
-                if not (parsedArgs.output == ""):
-                    saveTofile(fuzzResult, parsedArgs.output)
+            
+            if not (parsedArgs.output == ""):
+                saveTofile(fuzzResult, parsedArgs.output)
 
-                stdout.styledWriteLine(
-                    fgWhite, "Progress: ", fgRed, 
-                    "0% ", 
-                    fgWhite, 
-                    '#'.repeat (fuzzPercentage/10).int, '-'.repeat (10 - (fuzzPercentage/10).int), 
-                    fgYellow, " ", 
-                    $fuzzPercentage, 
-                    "% ", fgWhite, "Time: ", fgYellow, formatDuration(now() - timeStarted))
-
-
+            inc fuzzProgress
+            fuzzPercentage = (fuzzProgress / wordlistsSize * 100).int
 
             if fuzzProgress == wordlistsSize:
                 break
+
+        stdout.styledWriteLine(
+            fgWhite, "Progress: ", fgRed, 
+            "0% ", 
+            fgWhite, 
+            '#'.repeat (fuzzPercentage/10).int, '-'.repeat (10 - (fuzzPercentage/10).int), 
+            fgYellow, " ", 
+            $fuzzPercentage, 
+            "% ", fgWhite, "Time: ", fgYellow, formatDuration(now() - timeStarted))
+
+        cursorUp 1
+        eraseLine()
 
 
     joinThreads(threads)
