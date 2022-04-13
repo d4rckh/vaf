@@ -1,8 +1,8 @@
 import os
 import strformat
+import strutils
 import uri
-import std/[random, streams]
-
+import std/[random, streams, terminal, times]
 import ../types/VafFuzzArguments
 
 import VafUtils
@@ -24,9 +24,8 @@ proc prepareWordlist*(fuzzArguments: FuzzArguments): (seq[string], int) =
     if fuzzArguments.debug:
         log("debug", &"Storing temporary wordlists in temp dir: {tempdir}")
 
-
     randomize()
-    let x = rand(1000)
+    let x = now().format("yyyyMMddhhmmss")
     var wordlistStreams: seq[File] = @[]
     var threadWordlists: seq[string] = @[]
 
@@ -40,7 +39,7 @@ proc prepareWordlist*(fuzzArguments: FuzzArguments): (seq[string], int) =
     var i = 0
     var wordlistsSize = 0
 
-    log("info", &"Splitting the wordlist..... this might take a while if your wordlist is large or if you have a lot of threads.")
+    log("info", &"Loading wordlist...")
 
     if not isNil(strm):
         while strm.readLine(line):

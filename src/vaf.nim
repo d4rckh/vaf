@@ -54,6 +54,14 @@ try:
     var displayPostData: string = postData.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
     var displayUrl: string = url.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
 
+    var options: seq[string] = @[]
+
+    if parsedArgs.printifreflexive:
+        options.add("Print if reflexive")
+
+    if parsedArgs.urlencode:
+        options.add("URL encode")
+
     if url == "" or wordlist == "":
         log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
         quit(1)
@@ -71,25 +79,27 @@ try:
         quit(1)
 
     echo ""
-    log("header", &"Argument summary")
-    log("info", &"Printing on status: {KHAKI}{printOnStatus}")
-    log("info", &"Target URL:         {KHAKI}{displayUrl}")
+    log("header", "Argument summary")
+    log("option", "Target", displayUrl)
+    log("option", "Method", requestMethod)
+    log("option", "Status", printOnStatus)
+    log("option", "Threads", parsedArgs.threads)
     if requestMethod == "POST":
-        log("info", &"Post Data:          {KHAKI}{displayPostData}")
-    log("info", &"Method:             {KHAKI}{requestMethod}")
+        log("option", "Post Data", displayPostData)
     if not ( grep == "" ): 
-        log("info", &"Grep:               {KHAKI}{grep}")
-    log("info", &"Using Wordlist:     {KHAKI}{wordlist}")
+        log("option", "Grep", grep)
+    log("option", "Wordlist", wordlist)
     if not ( parsedArgs.prefix == ""):  
-        log("info", &"Using prefixes:     {KHAKI}{parsedArgs.prefix}")
+        log("option", "Prefixes", parsedArgs.prefix)
     if not ( parsedArgs.suffix == ""):  
-        log("info", &"Using suffixes:     {KHAKI}{parsedArgs.suffix}")
-    log("info", &"Print if reflexive: {KHAKI}{parsedArgs.printifreflexive}")
-    log("info", &"Url Encode:         {KHAKI}{parsedArgs.urlencode}")
+        log("option", "Suffixes", parsedArgs.suffix)
+    if len(options) != 0:
+        log("option", "Options", options.join(", "))
+    # log("info", &"Print if reflexive: {KHAKI}{parsedArgs.printifreflexive}")
+    # log("info", &"Url Encode:         {KHAKI}{parsedArgs.urlencode}")
     if not ( parsedArgs.output == ""):  
-        log("info", &"Output file:        {KHAKI}{parsedArgs.output}")
+        log("option", "Output", parsedArgs.output)
     echo ""
-    log("header", &"Results")
     
     var chan: Channel[(FuzzResult, FuzzResponse, int)]
     chan.open()
@@ -141,7 +151,9 @@ try:
     )
 
     let (wordlistFiles, wordlistsSize) = prepareWordlist(fuzzData)
-
+    
+    echo ""
+    
     var
         threadCount = len(wordlistFiles)
         threads = newSeq[Thread[tuple[threadId: int, threadArguments: ThreadArguments]]](threadCount)
@@ -177,8 +189,9 @@ try:
     var fuzzPercentage: int = 0
     let timeStarted = now()
 
-    while true:
+    log("header", &"Results")
 
+    while true:
 
         let tried = chan.tryRecv()
         if tried.dataAvailable:
@@ -213,10 +226,11 @@ try:
         cursorUp 1
         eraseLine()
 
-
     joinThreads(threads)
+    
+    echo ""
+    log("info", &"Finished in {formatDuration(now() - timeStarted)}")
 
-    log("success", &"Finished in {formatDuration(now() - timeStarted)}")
 
     cleanWordlists(wordlistFiles)
 except ShortCircuit as e:

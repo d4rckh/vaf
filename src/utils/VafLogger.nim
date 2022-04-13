@@ -7,15 +7,21 @@ import ../types/VafFuzzResult
 
 proc log*(logType: string, logMessage: string): void = 
     if logType == "info":
-        echo &"{AQUAMARINE}INFO: {RESETCOLS}{logMessage}{RESETCOLS}"
+        echo &"{BLUEY}INFO: {RESETCOLS}{logMessage}{RESETCOLS}"
     if logType == "result":
-        echo &"{AQUAMARINE}RESULT: {RESETCOLS}{logMessage}{RESETCOLS}"
+        echo &"{BLUEY}RESULT: {RESETCOLS}{logMessage}{RESETCOLS}"
     if logType == "header":
-        echo &"{BLUEY}\t\t{logMessage}{RESETCOLS}"
+        return
+        # disable headers, they look ugly
+        # echo &"{BLUEY}\t{logMessage}{RESETCOLS}\n"
     if logType == "error":
         echo &"{ORANGE}ERROR: {logMessage}{RESETCOLS}"
     if logType == "debug":
         echo &"{BLUEY}DEBUG: {logMessage}{RESETCOLS}"
+
+proc log*(logType: string, logMessage: string, logArgument: string): void = 
+    if logType == "option":
+        echo &"{ORANGE}{logMessage}:{RESETCOLS} {logArgument}{RESETCOLS}"
 
 
 proc printResponse*(response: FuzzResult, threadId: int): void = 
@@ -30,4 +36,4 @@ proc printResponse*(response: FuzzResult, threadId: int): void =
         urlDisplay = urlDisplay.replace(response.word, &"{RESETCOLS}{KHAKI}{response.word}{RESETCOLS}{ORANGE}")
     if "200" == statusCode or "201" == statusCode:
         statusColor = LIGHTGREEN
-    log("result", &"{RESETCOLS}{statusColor}[{response.statusCode}] ({response.responseLength} chars) {response.responseTime}ms\t{response.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    
+    log("result", &"{RESETCOLS}{statusColor}[{response.statusCode}] ({response.responseLength} chars) {response.responseTime}ms /{response.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    

@@ -12,3 +12,6 @@ proc printBanner*(): void =
                   \/ {TAG}
             https://github.com/d4rckh/vaf  
 """
+
+# proc printBanner*(): void =
+#   echo &"\nvaf {TAG} https://github.com/d4rckh/vaf"
