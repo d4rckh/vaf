@@ -2,7 +2,7 @@ type
     FuzzArguments* = object
         url*: string
         grep*: string
-        printOnStatus*: string
+        printOnStatus*: seq[string]
         postData*: string
         requestMethod*: string
         wordlistFile*: string
@@ -14,3 +14,4 @@ type
         output*: string
         printifreflexive*: bool
         debug*: bool
+        detailedView*: bool

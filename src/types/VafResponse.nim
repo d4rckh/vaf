@@ -1,3 +1,5 @@
+import httpclient
+
 type
   FuzzResponse* = object
     content*: string
@@ -5,3 +7,4 @@ type
     responseLength*: int
     url*: string
     responseTime*: int64
+    headers*: HttpHeaders

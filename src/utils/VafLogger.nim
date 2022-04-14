@@ -1,9 +1,10 @@
 import strformat
 import uri
 import strutils
+import httpclient
 
 import VafColors
-import ../types/VafFuzzResult
+import ../types/[VafFuzzResult, VafFuzzArguments]
 
 proc log*(logType: string, logMessage: string): void = 
     if logType == "info":
@@ -24,16 +25,19 @@ proc log*(logType: string, logMessage: string, logArgument: string): void =
         echo &"{ORANGE}{logMessage}:{RESETCOLS} {logArgument}{RESETCOLS}"
 
 
-proc printResponse*(response: FuzzResult, threadId: int): void = 
+proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, threadId: int): void = 
     var urlDecoded: string = "" 
     var urlDisplay: string = ""
     var statusColor: string = KHAKI
-    var statusCode: string = response.statusCode.split(" ")[0]
-    if response.urlencoded:
-        urlDecoded = &"({decodeUrl(response.word)})"
-    if response.printUrl:
-        urlDisplay = response.url
-        urlDisplay = urlDisplay.replace(response.word, &"{RESETCOLS}{KHAKI}{response.word}{RESETCOLS}{ORANGE}")
+    var statusCode: string = fuzzResult.statusCode.split(" ")[0]
+    if fuzzResult.urlencoded:
+        urlDecoded = &"({decodeUrl(fuzzResult.word)})"
+    if fuzzResult.printUrl:
+        urlDisplay = fuzzResult.url
+        urlDisplay = urlDisplay.replace(fuzzResult.word, &"{RESETCOLS}{KHAKI}{fuzzResult.word}{RESETCOLS}{ORANGE}")
     if "200" == statusCode or "201" == statusCode:
         statusColor = LIGHTGREEN
-    log("result", &"{RESETCOLS}{statusColor}[{response.statusCode}] ({response.responseLength} chars) {response.responseTime}ms /{response.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    
+    log("result", &"{RESETCOLS}{statusColor}[{fuzzResult.statusCode}] ({fuzzResult.response.responseLength} chars) {fuzzResult.response.responseTime}ms /{fuzzResult.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    
+    if fuzzArguments.detailedView:
+        for key, val in fuzzResult.response.headers:
+            echo &"| {ORANGE}{key}{RESETCOLS}: {val}"

@@ -35,6 +35,7 @@ let p = newParser("vaf"):
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-ue", "--urlencode", help="url encode the payloads")
   flag("-pu", "--printurl", help="prints the url that has been requested")
+  flag("-d", "--detailed", help="prints more info the about the requests like it's response headers")
   flag("-dbg", "--debug", help="Prints a lot of debug information")
 
 try:
@@ -44,10 +45,10 @@ try:
         echo &"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
 
         quit(QuitSuccess)
-    
+
     var url: string = parsedArgs.url
     var wordlist: string = parsedArgs.wordlist
-    var printOnStatus: string = parsedArgs.status
+    var printOnStatus: seq[string] = map(parsedArgs.status.split(","), proc(x: string): string = x.strip)
     var requestMethod: string = parsedArgs.method.toUpper()
     var postData: string = parsedArgs.postdata
     var grep: string = parsedArgs.grep
@@ -82,7 +83,7 @@ try:
     log("header", "Argument summary")
     log("option", "Target", displayUrl)
     log("option", "Method", requestMethod)
-    log("option", "Status", printOnStatus)
+    log("option", "Status", printOnStatus.join(", "))
     log("option", "Threads", parsedArgs.threads)
     if requestMethod == "POST":
         log("option", "Post Data", displayPostData)
@@ -113,8 +114,7 @@ try:
             urlencoded: args.urlencode, 
             url: urlToRequest, 
             printUrl: args.printurl, 
-            responseLength: resp.responseLength,
-            responseTime: resp.responseTime
+            response: resp
         )
     
         chan.send((fuzzResult, resp, threadId))
@@ -147,7 +147,8 @@ try:
         threadcount: parseInt(parsedArgs.threads),
         output: parsedArgs.output,
         printifreflexive: parsedArgs.printifreflexive,
-        debug: parsedArgs.debug
+        debug: parsedArgs.debug,
+        detailedView: parsedArgs.detailed
     )
 
     let (wordlistFiles, wordlistsSize) = prepareWordlist(fuzzData)
@@ -197,13 +198,15 @@ try:
         if tried.dataAvailable:
 
             let (fuzzResult, resp, threadId) = tried.msg
-
-            if  ((printOnStatus in resp.statusCode) or (printOnStatus == "any")) and 
-                (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or not parsedArgs.printifreflexive) and 
+            let s: int = len(filter(printOnStatus, proc(x: string): bool = x in resp.statusCode))
+            
+            if  ((s > 0) or 
+                (printOnStatus[0] == "any")) and 
+                (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or 
+                not parsedArgs.printifreflexive) and 
                 (parsedArgs.grep in resp.content):
-
                 
-                printResponse(fuzzResult, threadId)
+                printResponse(fuzzResult, fuzzData, threadId)
             
             if not (parsedArgs.output == ""):
                 saveTofile(fuzzResult, parsedArgs.output)
