@@ -5,6 +5,8 @@ type
         printOnStatus*: seq[string]
         postData*: string
         requestMethod*: string
+        proxy*: string
+        caFile*: string
         wordlistFile*: string
         prefixes*: seq[string]
         suffixes*: seq[string]
@@ -14,4 +16,5 @@ type
         output*: string
         printifreflexive*: bool
         debug*: bool
-        detailedView*: bool
+        detailedView*: bool        
+        ignoreSSL*: bool

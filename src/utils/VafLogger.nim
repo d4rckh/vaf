@@ -11,6 +11,8 @@ proc log*(logType: string, logMessage: string): void =
         echo &"{BLUEY}INFO: {RESETCOLS}{logMessage}{RESETCOLS}"
     if logType == "result":
         echo &"{BLUEY}RESULT: {RESETCOLS}{logMessage}{RESETCOLS}"
+    if logType == "warn":
+        echo &"{ORANGE}WARN: {RESETCOLS}{logMessage}{RESETCOLS}"
     if logType == "header":
         return
         # disable headers, they look ugly
@@ -26,10 +28,10 @@ proc log*(logType: string, logMessage: string, logArgument: string): void =
 
 
 proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, threadId: int): void = 
-    var urlDecoded: string = "" 
-    var urlDisplay: string = ""
-    var statusColor: string = KHAKI
-    var statusCode: string = fuzzResult.statusCode.split(" ")[0]
+    var urlDecoded = "" 
+    var urlDisplay = ""
+    var statusColor = KHAKI
+    var statusCode = fuzzResult.statusCode.split(" ")[0]
     if fuzzResult.urlencoded:
         urlDecoded = &"({decodeUrl(fuzzResult.word)})"
     if fuzzResult.printUrl:

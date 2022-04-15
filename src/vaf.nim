@@ -4,6 +4,7 @@ import strutils
 import uri
 import httpclient
 import argparse
+import net
 import std/[streams, terminal, os, times]
 
 import types/[VafFuzzResponse, VafFuzzResult, VafThreadArguments, VafFuzzArguments]
@@ -31,35 +32,36 @@ let p = newParser("vaf"):
   option("-g", "--grep", default=some(""), help="greps for a string in the response")
   option("-o", "--output", default=some(""), help="Output the results in a file")
   option("-t", "--threads", default=some("5"), help="The amount of threads to use")
+  option("-x", "--proxy", default=some(""), help="the proxy to use")
+  option("-ca", "--cafile", default=some(""), help="specify a root certificate to use")
   flag("-v", "--version", help="get version information")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
+  flag("-i", "--ignoressl", help="do not very ssl certificates")
   flag("-ue", "--urlencode", help="url encode the payloads")
   flag("-pu", "--printurl", help="prints the url that has been requested")
   flag("-d", "--detailed", help="prints more info the about the requests like it's response headers")
   flag("-dbg", "--debug", help="Prints a lot of debug information")
 
 try:
-    var parsedArgs = p.parse(commandLineParams())
+    let parsedArgs = p.parse(commandLineParams())
 
     if parsedArgs.version:
         echo &"vaf {TAG}@{BRANCH} compiled on {PLATFORM} at {CompileTime} {CompileDate}"
 
         quit(QuitSuccess)
 
-    var url: string = parsedArgs.url
-    var wordlist: string = parsedArgs.wordlist
-    var printOnStatus: seq[string] = map(parsedArgs.status.split(","), proc(x: string): string = x.strip)
-    var requestMethod: string = parsedArgs.method.toUpper()
-    var postData: string = parsedArgs.postdata
-    var grep: string = parsedArgs.grep
-    var displayPostData: string = postData.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
-    var displayUrl: string = url.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
+    let url: string = parsedArgs.url
+    let wordlist: string = parsedArgs.wordlist
+    let printOnStatus: seq[string] = map(parsedArgs.status.split(","), proc(x: string): string = x.strip)
+    let requestMethod: string = parsedArgs.method.toUpper()
+    let postData: string = parsedArgs.postdata
+    let grep: string = parsedArgs.grep
+    let displayPostData: string = postData.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
+    let displayUrl: string = url.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
 
     var options: seq[string] = @[]
-
     if parsedArgs.printifreflexive:
         options.add("Print if reflexive")
-
     if parsedArgs.urlencode:
         options.add("URL encode")
 
@@ -80,6 +82,7 @@ try:
         quit(1)
 
     echo ""
+
     log("header", "Argument summary")
     log("option", "Target", displayUrl)
     log("option", "Method", requestMethod)
@@ -94,6 +97,8 @@ try:
         log("option", "Prefixes", parsedArgs.prefix)
     if not ( parsedArgs.suffix == ""):  
         log("option", "Suffixes", parsedArgs.suffix)
+    if parsedArgs.proxy != "":
+        log("option", "Proxy", parsedArgs.proxy)
     if len(options) != 0:
         log("option", "Options", options.join(", "))
     # log("info", &"Print if reflexive: {KHAKI}{parsedArgs.printifreflexive}")
@@ -106,9 +111,9 @@ try:
     chan.open()
 
     proc fuzz(word: string, client: HttpClient, args: FuzzArguments, threadId: int): void =
-        var urlToRequest: string = args.url.replace("[]", word)
-        var resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
-        var fuzzResult: FuzzResult = FuzzResult(
+        let urlToRequest: string = args.url.replace("[]", word)
+        let resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
+        let fuzzResult: FuzzResult = FuzzResult(
             word: word, 
             statusCode: resp.statusCode, 
             urlencoded: args.urlencode, 
@@ -119,21 +124,10 @@ try:
     
         chan.send((fuzzResult, resp, threadId))
 
-        #[
-            D:\Projects\2022\vaf\src\vaf.nim(109, 13) Error: type mismatch: got <Channel[void], FuzzResult>
-            but expected one of:
-            proc send[TMsg](c: var Channel[TMsg]; msg: sink TMsg)
-            first type mismatch at position: 2
-            required type for msg: sink TMsg
-            but expression 'fuzzResult' is of type: FuzzResult
-
-        ]#
-
-
     let prefixes = parsedArgs.prefix.split(",")
     let suffixes = parsedArgs.suffix.split(",")
 
-    var fuzzData: FuzzArguments = FuzzArguments(
+    let fuzzData: FuzzArguments = FuzzArguments(
         url: url,
         grep: grep,
         printOnStatus: printOnStatus,
@@ -148,25 +142,34 @@ try:
         output: parsedArgs.output,
         printifreflexive: parsedArgs.printifreflexive,
         debug: parsedArgs.debug,
-        detailedView: parsedArgs.detailed
+        detailedView: parsedArgs.detailed,
+        proxy: parsedArgs.proxy,
+        caFile: parsedArgs.cafile,
+        ignoreSSL: parsedArgs.ignoressl
     )
 
     let (wordlistFiles, wordlistsSize) = prepareWordlist(fuzzData)
     
     echo ""
     
-    var
-        threadCount = len(wordlistFiles)
-        threads = newSeq[Thread[tuple[threadId: int, threadArguments: ThreadArguments]]](threadCount)
+    let threadCount = len(wordlistFiles)
+    var threads = newSeq[Thread[tuple[threadId: int, threadArguments: ThreadArguments]]](threadCount)
 
     proc threadFunction(data: tuple[threadId: int, threadArguments: ThreadArguments]) {.thread.} =
-        var client: HttpClient = newHttpClient()
-        var threadData: ThreadArguments = data.threadArguments
+        let threadData: ThreadArguments = data.threadArguments
+        var verifyMode = CVerifyPeer
+        if threadData.fuzzData.ignoreSSL:
+            verifyMode= CVerifyNone
+        let sslContext: SslContext = newContext(caFile=threadData.fuzzData.caFile, verifyMode=verifyMode)
+        var proxy: Proxy = nil
+        if threadData.fuzzData.proxy != "":
+            proxy = newProxy(threadData.fuzzData.proxy)
+        let client: HttpClient = newHttpClient(sslContext=sslContext, proxy=proxy)
         
         if threadData.fuzzData.debug:
             echo "ThreadID: " & $data.threadId & " | got to deal with the " & threadData.wordlistFile & " wordlist"
 
-        var strm = newFileStream(threadData.wordlistFile, fmRead)
+        let strm = newFileStream(threadData.wordlistFile, fmRead)
         var line = ""
         if not isNil(strm):
             while strm.readLine(line):
@@ -187,7 +190,7 @@ try:
         i += 1  
 
     var fuzzProgress = 0
-    var fuzzPercentage: int = 0
+    var fuzzPercentage = 0
     let timeStarted = now()
 
     log("header", &"Results")
