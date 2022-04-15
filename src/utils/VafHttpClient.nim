@@ -1,7 +1,7 @@
 import std/[times]
 import httpclient
 
-import ../types/VafResponse
+import ../types/VafFuzzResponse
 
 proc makeRequest*(url: string, requestType: string, postData: string, client: HttpClient): FuzzResponse = 
     var response: Response = nil

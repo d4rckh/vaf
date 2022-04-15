@@ -22,7 +22,7 @@ proc log*(logType: string, logMessage: string): void =
 
 proc log*(logType: string, logMessage: string, logArgument: string): void = 
     if logType == "option":
-        echo &"{ORANGE}{logMessage}:{RESETCOLS} {logArgument}{RESETCOLS}"
+        echo &"{ORANGE}{logMessage}{RESETCOLS}: {logArgument}{RESETCOLS}"
 
 
 proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, threadId: int): void = 

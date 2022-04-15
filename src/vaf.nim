@@ -6,7 +6,7 @@ import httpclient
 import argparse
 import std/[streams, terminal, os, times]
 
-import types/[VafResponse, VafFuzzResult, VafThreadArguments, VafFuzzArguments]
+import types/[VafFuzzResponse, VafFuzzResult, VafThreadArguments, VafFuzzArguments]
 
 import utils/VafLogger
 import utils/VafHttpClient

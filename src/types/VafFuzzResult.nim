@@ -1,4 +1,4 @@
-import VafResponse
+import VafFuzzResponse
 
 type
   FuzzResult* = object
