@@ -16,8 +16,7 @@ import utils/VafBanner
 import utils/VafOutput
 import utils/VafWordlist
 import utils/VafCompileConsts
-
-import utils/formatDuration
+import utils/VafUtils
 
 printBanner()
 
