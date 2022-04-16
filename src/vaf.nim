@@ -34,6 +34,7 @@ let p = newParser("vaf"):
   option("-t", "--threads", default=some("5"), help="The amount of threads to use")
   option("-x", "--proxy", default=some(""), help="the proxy to use")
   option("-ca", "--cafile", default=some(""), help="specify a root certificate to use")
+  option("-H", "--header", help="specify headers, you can use this argument as many headers you need", multiple=true)
   flag("-v", "--version", help="get version information")
   flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
   flag("-i", "--ignoressl", help="do not very ssl certificates")
@@ -73,11 +74,11 @@ try:
         log("error", "File " & wordlist & " does not exist.")
         quit(1)
     
-    if not ("[]" in url) and (requestMethod == "GET"):
-        log("error", "Please specify a fuzz area in the url, example: 'https://example.org/[]'")
+    if not (("[]" in url) or (parsedArgs.header.anyIt("[]" in it))) and (requestMethod == "GET"):
+        log("error", "Please specify a fuzz area in the url or headers, example: `-u https://example.org/[]` or `-H 'User-Agent: []'`")
         quit(1)
 
-    if not (("[]" in postData) or ("[]" in url)) and (requestMethod == "POST"):
+    if not (("[]" in postData) or ("[]" in url) or ((parsedArgs.header.anyIt("[]" in it)))) and (requestMethod == "POST"):
         log("error", "Please specify a fuzz area in the post data or the url, example: '{\"username\": \"[]\"}' or 'https://example.org/[]'")
         quit(1)
 
@@ -112,7 +113,17 @@ try:
 
     proc fuzz(word: string, client: HttpClient, args: FuzzArguments, threadId: int): void =
         let urlToRequest: string = args.url.replace("[]", word)
-        let resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), client)
+
+        var headers: seq[tuple[key: string, val: string]] = @[]
+
+        for header in args.headers:
+            let s = header.split(":") 
+            let k = s[0].strip.replace("[]", word)
+            let v = s[1..(len(s)-1)].join(":").strip.replace("[]", word)
+            
+            headers.add((key: k, val: v))
+
+        let resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), newHttpHeaders(headers), client)
         let fuzzResult: FuzzResult = FuzzResult(
             word: word, 
             statusCode: resp.statusCode, 
@@ -145,7 +156,8 @@ try:
         detailedView: parsedArgs.detailed,
         proxy: parsedArgs.proxy,
         caFile: parsedArgs.cafile,
-        ignoreSSL: parsedArgs.ignoressl
+        ignoreSSL: parsedArgs.ignoressl,
+        headers: parsedArgs.header
     )
 
     let (wordlistFiles, wordlistsSize) = prepareWordlist(fuzzData)
@@ -242,4 +254,6 @@ try:
 except ShortCircuit as e:
   if e.flag == "argparse_help":
     echo p.help
+    echo """Examples:
+nim -u https://example.org/ -w path/to/wordlist.txt"""
     quit(0)

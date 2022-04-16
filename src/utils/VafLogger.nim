@@ -39,7 +39,7 @@ proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, thread
         urlDisplay = urlDisplay.replace(fuzzResult.word, &"{RESETCOLS}{KHAKI}{fuzzResult.word}{RESETCOLS}{ORANGE}")
     if "200" == statusCode or "201" == statusCode:
         statusColor = LIGHTGREEN
-    log("result", &"{RESETCOLS}{statusColor}[{fuzzResult.statusCode}] ({fuzzResult.response.responseLength} chars) {fuzzResult.response.responseTime}ms /{fuzzResult.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    
+    log("result", &"{RESETCOLS}{statusColor}[{fuzzResult.statusCode}] ({fuzzResult.response.responseLength} chars) {fuzzResult.response.responseTime}ms {fuzzResult.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    
     if fuzzArguments.detailedView:
         for key, val in fuzzResult.response.headers:
             echo &"| {ORANGE}{key}{RESETCOLS}: {val}"

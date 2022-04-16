@@ -8,6 +8,7 @@ type
         proxy*: string
         caFile*: string
         wordlistFile*: string
+        headers*: seq[string]
         prefixes*: seq[string]
         suffixes*: seq[string]
         threadcount*: int
