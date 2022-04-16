@@ -41,7 +41,7 @@ let p = newParser("vaf"):
   flag("-i", "--ignoressl", help="Do not verify SSL certificates; useful if you are using Burp/ZAP proxy")
   flag("-ue", "--urlencode", help="URL encode the fuzzed words")
   flag("-pu", "--printurl", help="Print the requested URL")
-  flag("-d", "--detailed", help="Print response headers and more information")
+  flag("-ph", "--printheaders", help="Print response headers")
   flag("-dbg", "--debug", help="Prints debug information")
 
 try:
@@ -136,7 +136,7 @@ try:
         output: parsedArgs.output,
         printifreflexive: parsedArgs.printifreflexive,
         debug: parsedArgs.debug,
-        detailedView: parsedArgs.detailed,
+        printheaders: parsedArgs.printheaders,
         proxy: parsedArgs.proxy,
         caFile: parsedArgs.cafile,
         ignoreSSL: parsedArgs.ignoressl,

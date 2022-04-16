@@ -19,5 +19,5 @@ type
         output*: string
         printifreflexive*: bool
         debug*: bool
-        detailedView*: bool        
+        printheaders*: bool        
         ignoreSSL*: bool
