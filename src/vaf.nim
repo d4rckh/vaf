@@ -31,10 +31,12 @@ let p = newParser("vaf"):
   option("-t", "--threads", default=some("5"), help="Number of threads")
   option("-sc", "--status", default=some("200"), help="The status to filter; to 'any' to print on any status")
   option("-g", "--grep", default=some(""), help="Only log if the response body contains the string")
+  option("-ng", "--notgrep", default=some(""), help="Only log if the response body does no contain a string")
   option("-pd", "--postdata", default=some("{}"), help="Specify POST data; used only if '-m post' is set")
   option("-x", "--proxy", default=some(""), help="Specify a proxy")
   option("-ca", "--cafile", default=some(""), help="Specify a CA root certificate; useful if you are using Burp/ZAP proxy")
   option("-o", "--output", default=some(""), help="Output the results in a file")
+  option("-mr", "--maxredirects", default=some("0"), help="How many redirects should vaf follow; 0 means none")
   flag("-v", "--version", help="Print version information")
   flag("-pif", "--printifreflexive", help="Print only if the fuzzed word is reflected in the page")
   flag("-i", "--ignoressl", help="Do not verify SSL certificates; useful if you are using Burp/ZAP proxy")
@@ -99,6 +101,8 @@ try:
         log("option", "Post Data", displayPostData)
     if not ( grep == "" ): 
         log("option", "Grep", grep)
+    if not ( parsedArgs.notgrep == "" ): 
+        log("option", "Not Grep", parsedArgs.notgrep)
     log("option", "Wordlist", wordlist)
     if not ( parsedArgs.prefix == ""):  
         log("option", "Prefixes", parsedArgs.prefix)
@@ -119,6 +123,7 @@ try:
     let fuzzData: FuzzArguments = FuzzArguments(
         url: url,
         grep: grep,
+        notgrep: parsedArgs.notgrep,
         printOnStatus: printOnStatus,
         postData: postData,
         requestMethod: requestMethod,
@@ -127,6 +132,7 @@ try:
         suffixes: suffixes,
         prefixes: prefixes,
         printurl: parsedArgs.printurl,
+        maxredirects: parseInt(parsedArgs.maxredirects),
         threadcount: parseInt(parsedArgs.threads),
         output: parsedArgs.output,
         printifreflexive: parsedArgs.printifreflexive,
@@ -186,7 +192,7 @@ try:
         var proxy: Proxy = nil
         if threadData.fuzzData.proxy != "":
             proxy = newProxy(threadData.fuzzData.proxy)
-        let client: HttpClient = newHttpClient(sslContext=sslContext, proxy=proxy)
+        let client: HttpClient = newHttpClient(sslContext=sslContext, proxy=proxy, maxRedirects=threadData.fuzzData.maxredirects)
         
         if threadData.fuzzData.debug:
             echo "ThreadID: " & $data.threadId & " | got to deal with the " & threadData.wordlistFile & " wordlist"
@@ -232,8 +238,8 @@ try:
                 (printOnStatus[0] == "any")) and 
                 (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or 
                 not parsedArgs.printifreflexive) and 
-                (parsedArgs.grep in resp.content):
-                
+                (parsedArgs.grep in resp.content) and 
+                ( not (parsedArgs.notgrep in resp.content) or parsedArgs.notgrep == ""):
                 printResponse(fuzzResult, fuzzData, threadId)
             
             # Save the result to the file

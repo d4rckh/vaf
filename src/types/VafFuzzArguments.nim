@@ -2,6 +2,7 @@ type
     FuzzArguments* = object
         url*: string
         grep*: string
+        notgrep*: string
         printOnStatus*: seq[string]
         postData*: string
         requestMethod*: string
@@ -12,6 +13,7 @@ type
         prefixes*: seq[string]
         suffixes*: seq[string]
         threadcount*: int
+        maxredirects*: int
         urlencode*: bool
         printurl*: bool
         output*: string
