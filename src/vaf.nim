@@ -22,26 +22,26 @@ import utils/formatDuration
 printBanner()
 
 let p = newParser("vaf"):
-  option("-u", "--url", help="choose url, replace area to fuzz with []")
-  option("-w", "--wordlist", help="choose the wordlist to use")
-  option("-sc", "--status", default=some("200"), help="set on which status to print, set this param to 'any' to print on any status")
-  option("-pf", "--prefix", default=some(""), help="prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end")
-  option("-sf", "--suffix", default=some(""), help="suffix, e.g. use this for extensions if you are doing content discovery")
-  option("-pd", "--postdata", default=some("{}"), help="only used if '-m post' is set")
-  option("-m", "--method", default=some("GET"), help="the method to use PSOT/GET")
-  option("-g", "--grep", default=some(""), help="greps for a string in the response")
+  option("-u", "--url", help="Target URL. Replace fuzz area with []")
+  option("-w", "--wordlist", help="The path to the wordlist.")
+  option("-m", "--method", default=some("GET"), help="Request method. Supported: POST, GET")
+  option("-H", "--header", help="Specify HTTP headers; can be used multiple times. Example: -H 'header1: val1' -H 'header1: val1'", multiple=true)
+  option("-pf", "--prefix", default=some(""), help="The prefixes to append to the word")
+  option("-sf", "--suffix", default=some(""), help="The suffixes to append to the word")
+  option("-t", "--threads", default=some("5"), help="Number of threads")
+  option("-sc", "--status", default=some("200"), help="The status to filter; to 'any' to print on any status")
+  option("-g", "--grep", default=some(""), help="Only log if the response body contains the string")
+  option("-pd", "--postdata", default=some("{}"), help="Specify POST data; used only if '-m post' is set")
+  option("-x", "--proxy", default=some(""), help="Specify a proxy")
+  option("-ca", "--cafile", default=some(""), help="Specify a CA root certificate; useful if you are using Burp/ZAP proxy")
   option("-o", "--output", default=some(""), help="Output the results in a file")
-  option("-t", "--threads", default=some("5"), help="The amount of threads to use")
-  option("-x", "--proxy", default=some(""), help="the proxy to use")
-  option("-ca", "--cafile", default=some(""), help="specify a root certificate to use")
-  option("-H", "--header", help="specify headers, you can use this argument as many headers you need", multiple=true)
-  flag("-v", "--version", help="get version information")
-  flag("-pif", "--printifreflexive", help="print only if the output reflected in the page, useful for finding xss")
-  flag("-i", "--ignoressl", help="do not very ssl certificates")
-  flag("-ue", "--urlencode", help="url encode the payloads")
-  flag("-pu", "--printurl", help="prints the url that has been requested")
-  flag("-d", "--detailed", help="prints more info the about the requests like it's response headers")
-  flag("-dbg", "--debug", help="Prints a lot of debug information")
+  flag("-v", "--version", help="Print version information")
+  flag("-pif", "--printifreflexive", help="Print only if the fuzzed word is reflected in the page")
+  flag("-i", "--ignoressl", help="Do not verify SSL certificates; useful if you are using Burp/ZAP proxy")
+  flag("-ue", "--urlencode", help="URL encode the fuzzed words")
+  flag("-pu", "--printurl", help="Print the requested URL")
+  flag("-d", "--detailed", help="Print response headers and more information")
+  flag("-dbg", "--debug", help="Prints debug information")
 
 try:
     let parsedArgs = p.parse(commandLineParams())
@@ -59,12 +59,16 @@ try:
     let grep: string = parsedArgs.grep
     let displayPostData: string = postData.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
     let displayUrl: string = url.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
+    let prefixes = parsedArgs.prefix.split(",")
+    let suffixes = parsedArgs.suffix.split(",")
 
     var options: seq[string] = @[]
     if parsedArgs.printifreflexive:
         options.add("Print if reflexive")
     if parsedArgs.urlencode:
         options.add("URL encode")
+
+    # Basic checkins of arguments
 
     if url == "" or wordlist == "":
         log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
@@ -83,6 +87,8 @@ try:
         quit(1)
 
     echo ""
+
+    # Print a summary of arguments
 
     log("header", "Argument summary")
     log("option", "Target", displayUrl)
@@ -108,35 +114,7 @@ try:
         log("option", "Output", parsedArgs.output)
     echo ""
     
-    var chan: Channel[(FuzzResult, FuzzResponse, int)]
-    chan.open()
-
-    proc fuzz(word: string, client: HttpClient, args: FuzzArguments, threadId: int): void =
-        let urlToRequest: string = args.url.replace("[]", word)
-
-        var headers: seq[tuple[key: string, val: string]] = @[]
-
-        for header in args.headers:
-            let s = header.split(":") 
-            let k = s[0].strip.replace("[]", word)
-            let v = s[1..(len(s)-1)].join(":").strip.replace("[]", word)
-            
-            headers.add((key: k, val: v))
-
-        let resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), newHttpHeaders(headers), client)
-        let fuzzResult: FuzzResult = FuzzResult(
-            word: word, 
-            statusCode: resp.statusCode, 
-            urlencoded: args.urlencode, 
-            url: urlToRequest, 
-            printUrl: args.printurl, 
-            response: resp
-        )
-    
-        chan.send((fuzzResult, resp, threadId))
-
-    let prefixes = parsedArgs.prefix.split(",")
-    let suffixes = parsedArgs.suffix.split(",")
+    # This object is sent to threads
 
     let fuzzData: FuzzArguments = FuzzArguments(
         url: url,
@@ -160,12 +138,44 @@ try:
         headers: parsedArgs.header
     )
 
+    # Splits the wordlist in multiple to be used by the threads
+
     let (wordlistFiles, wordlistsSize) = prepareWordlist(fuzzData)
     
     echo ""
     
-    let threadCount = len(wordlistFiles)
+    # Channel in which the fuzz results will be communicated
+
+    var chan: Channel[(FuzzResult, int)]
+    chan.open()
+
+    #[ We doing this so if the user supplied 10 words and 100 threads, only 10 threads will be created ]#
+    let threadCount = len(wordlistFiles) 
     var threads = newSeq[Thread[tuple[threadId: int, threadArguments: ThreadArguments]]](threadCount)
+
+    proc fuzz(word: string, client: HttpClient, args: FuzzArguments, threadId: int): void =
+        let urlToRequest: string = args.url.replace("[]", word)
+
+        var headers: seq[tuple[key: string, val: string]] = @[]
+
+        for header in args.headers:
+            let s = header.split(":") 
+            let k = s[0].strip.replace("[]", word)
+            let v = s[1..(len(s)-1)].join(":").strip.replace("[]", word)
+            
+            headers.add((key: k, val: v))
+
+        let resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), newHttpHeaders(headers), client)
+        let fuzzResult: FuzzResult = FuzzResult(
+            word: word, 
+            statusCode: resp.statusCode, 
+            urlencoded: args.urlencode, 
+            url: urlToRequest, 
+            printUrl: args.printurl, 
+            response: resp
+        )
+    
+        chan.send((fuzzResult, threadId))
 
     proc threadFunction(data: tuple[threadId: int, threadArguments: ThreadArguments]) {.thread.} =
         let threadData: ThreadArguments = data.threadArguments
@@ -212,10 +222,13 @@ try:
         let tried = chan.tryRecv()
         if tried.dataAvailable:
 
-            let (fuzzResult, resp, threadId) = tried.msg
-            let s: int = len(filter(printOnStatus, proc(x: string): bool = x in resp.statusCode))
+            let (fuzzResult, threadId) = tried.msg
+            let resp = fuzzResult.response
+
+            # Apply the status code filter
+            let s: bool = len(filter(printOnStatus, proc(x: string): bool = x in resp.statusCode)) > 0
             
-            if  ((s > 0) or 
+            if  (s or 
                 (printOnStatus[0] == "any")) and 
                 (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or 
                 not parsedArgs.printifreflexive) and 
@@ -223,6 +236,7 @@ try:
                 
                 printResponse(fuzzResult, fuzzData, threadId)
             
+            # Save the result to the file
             if not (parsedArgs.output == ""):
                 saveTofile(fuzzResult, parsedArgs.output)
 
@@ -232,6 +246,7 @@ try:
             if fuzzProgress == wordlistsSize:
                 break
 
+        # Cool progress bar 😎
         stdout.styledWriteLine(
             fgWhite, "Progress: ", fgRed, 
             "0% ", 
@@ -244,16 +259,25 @@ try:
         cursorUp 1
         eraseLine()
 
+    # Wait for all threads to finish
     joinThreads(threads)
     
     echo ""
     log("info", &"Finished in {formatDuration(now() - timeStarted)}")
 
-
+    # Delete the wordlists that were created
     cleanWordlists(wordlistFiles)
 except ShortCircuit as e:
   if e.flag == "argparse_help":
     echo p.help
     echo """Examples:
-nim -u https://example.org/ -w path/to/wordlist.txt"""
+  Fuzz URL path, show only responses which returned 200 OK 
+    nim -u https://example.org/[] -w path/to/wordlist.txt -sc OK
+
+  Fuzz 'User-Agent' header, show only responses which returned 200 OK 
+    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: []"
+
+  Fuzz POST data, show only responses which returned 200 OK
+    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": "[]"}' 
+  """
     quit(0)
