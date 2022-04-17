@@ -250,9 +250,9 @@ try:
                 ( not (parsedArgs.notgrep in resp.content) or parsedArgs.notgrep == ""):
                 printResponse(fuzzResult, fuzzData, threadId)
             
-            # Save the result to the file
-            if not (parsedArgs.output == ""):
-                saveTofile(fuzzResult, parsedArgs.output)
+                # Save the result to the file
+                if not (parsedArgs.output == ""):
+                    saveTofile(fuzzResult, parsedArgs.output)
 
             inc fuzzProgress
             fuzzPercentage = (fuzzProgress / wordlistsSize * 100).int
