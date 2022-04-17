@@ -26,7 +26,6 @@ proc log*(logType: string, logMessage: string, logArgument: string): void =
     if logType == "option":
         echo &"{ORANGE}{logMessage}{RESETCOLS}: {logArgument}{RESETCOLS}"
 
-
 proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, threadId: int): void = 
     var urlDecoded = "" 
     var urlDisplay = ""
@@ -37,8 +36,14 @@ proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, thread
     if fuzzResult.printUrl:
         urlDisplay = fuzzResult.url
         urlDisplay = urlDisplay.replace(fuzzResult.word, &"{RESETCOLS}{KHAKI}{fuzzResult.word}{RESETCOLS}{ORANGE}")
-    if "200" == statusCode or "201" == statusCode:
+    if parseInt(statusCode) in {200 .. 299}:
         statusColor = LIGHTGREEN
+    # its khaki by default
+    # if parseInt(statusCode) in {300 .. 399}:
+    #     statusColor = KHAKI
+    if parseInt(statusCode) in {400 .. 499}:
+        statusColor = RED
+    
     log("result", &"{RESETCOLS}{statusColor}[{fuzzResult.statusCode}] ({fuzzResult.response.responseLength} chars) {fuzzResult.response.responseTime}ms {fuzzResult.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    
     if fuzzArguments.printheaders:
         for key, val in fuzzResult.response.headers:
