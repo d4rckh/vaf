@@ -20,6 +20,15 @@ import utils/VafUtils
 
 printBanner()
 
+var forceExit = false
+
+proc handler() {.noconv.} =
+    
+    forceExit = true
+    echo RESETCOLS
+    # quit(1)
+setControlCHook(handler)
+
 let p = newParser("vaf"):
   option("-u", "--url", help="Target URL. Replace fuzz area with []")
   option("-w", "--wordlist", help="The path to the wordlist.")
@@ -199,7 +208,7 @@ try:
         let strm = newFileStream(threadData.wordlistFile, fmRead)
         var line = ""
         if not isNil(strm):
-            while strm.readLine(line):
+            while strm.readLine(line) and not forceExit:
                 if threadData.fuzzData.debug:
                     log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & line)
                 fuzz(line, client, threadData.fuzzData, data.threadId)
@@ -221,9 +230,9 @@ try:
     let timeStarted = now()
 
     log("header", &"Results")
-
-    while true:
-
+    
+    while true and not forceExit:
+        
         let tried = chan.tryRecv()
         if tried.dataAvailable:
 
@@ -260,9 +269,13 @@ try:
             fgYellow, " ", 
             $fuzzPercentage, 
             "% ", fgWhite, "Time: ", fgYellow, formatDuration(now() - timeStarted))
-
+            
         cursorUp 1
         eraseLine()
+
+
+    if forceExit:
+        log("warn", "Force exit, shutting down all threads...")
 
     # Wait for all threads to finish
     joinThreads(threads)
@@ -284,5 +297,8 @@ except ShortCircuit as e:
 
   Fuzz POST data, show only responses which returned 200 OK
     nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": "[]"}' 
+
+Report bugs:
+  https://github.com/d4rckh/vaf/issues/new/choose
   """
     quit(0)
