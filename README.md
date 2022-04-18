@@ -29,7 +29,7 @@ vaf is a cross-platform web fuzzer with a lot of features. Some of its features 
 
 You can install vaf:
 - by downloading the **pre-compiled binaries in the [releases page](https://github.com/d4rckh/vaf/releases/)** and adding them manually to your path
-- by running the `install.sh` **bash script** which will __download nim, build vaf from source and then link the binary to /usr/bin__  (make sure to `chmod +x install.sh`)
+- by running the `install.sh` **bash script** which will __download nim from releases, and move it to /usr/bin__  (make sure to `chmod +x install.sh`)
 
 ## Options
 
