@@ -65,17 +65,17 @@ Options:
 
 ### Fuzz URL path, show only responses which returned 200 OK
 ```
-nim -u https://example.org/ -w path/to/wordlist.txt -sc OK
+nim -u https://example.org/FUZZ -w path/to/wordlist.txt -sc OK
 ```
 
 ### Fuzz 'User-Agent' header, show only responses which returned 200 OK
 ```
-nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: "
+nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: FUZZ"
 ```
 
 ### Fuzz POST data, show only responses which returned 200 OK
 ```
-nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": ""}'
+nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": "FUZZ"}'
 ```
 
 # Contributors 
