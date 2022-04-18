@@ -11,7 +11,6 @@ import types/[VafFuzzResponse, VafFuzzResult, VafThreadArguments, VafFuzzArgumen
 
 import utils/VafLogger
 import utils/VafHttpClient
-import utils/VafColors
 import utils/VafBanner
 import utils/VafOutput
 import utils/VafWordlist
@@ -23,14 +22,12 @@ printBanner()
 var forceExit = false
 
 proc handler() {.noconv.} =
-    
+    # this will cause every thread to close its file stream, vaf will close on it's own afterwards
     forceExit = true
-    echo RESETCOLS
-    # quit(1)
 setControlCHook(handler)
 
 let p = newParser("vaf"):
-  option("-u", "--url", help="Target URL. Replace fuzz area with []")
+  option("-u", "--url", help="Target URL. Replace fuzz area with FUZZ")
   option("-w", "--wordlist", help="The path to the wordlist.")
   option("-m", "--method", default=some("GET"), help="Request method. Supported: POST, GET")
   option("-H", "--header", help="Specify HTTP headers; can be used multiple times. Example: -H 'header1: val1' -H 'header1: val1'", multiple=true)
@@ -67,8 +64,8 @@ try:
     let requestMethod: string = parsedArgs.method.toUpper()
     let postData: string = parsedArgs.postdata
     let grep: string = parsedArgs.grep
-    let displayPostData: string = postData.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
-    let displayUrl: string = url.replace("[]", &"{RESETCOLS}{ORANGE}[]{RESETCOLS}{KHAKI}")
+    let displayPostData: string = postData
+    let displayUrl: string = url
     let prefixes = parsedArgs.prefix.split(",")
     let suffixes = parsedArgs.suffix.split(",")
 
@@ -82,19 +79,19 @@ try:
 
     if url == "" or wordlist == "":
         log("error", "Please specify an URL to fuzz using '-u' and a wordlist using '-w'.")
-        quit(1)
+        quit(QuitFailure)
 
     if not os.fileExists(wordlist):
         log("error", "File " & wordlist & " does not exist.")
-        quit(1)
+        quit(QuitFailure)
     
-    if not (("[]" in url) or (parsedArgs.header.anyIt("[]" in it))) and (requestMethod == "GET"):
-        log("error", "Please specify a fuzz area in the url or headers, example: `-u https://example.org/[]` or `-H 'User-Agent: []'`")
-        quit(1)
+    if not (("FUZZ" in url) or (parsedArgs.header.anyIt("FUZZ" in it))) and (requestMethod == "GET"):
+        log("error", "Please specify a fuzz area in the url or headers, example: `-u https://example.org/` or `-H 'User-Agent: '`")
+        quit(QuitFailure)
 
-    if not (("[]" in postData) or ("[]" in url) or ((parsedArgs.header.anyIt("[]" in it)))) and (requestMethod == "POST"):
-        log("error", "Please specify a fuzz area in the post data or the url, example: '{\"username\": \"[]\"}' or 'https://example.org/[]'")
-        quit(1)
+    if not (("FUZZ" in postData) or ("FUZZ" in url) or ((parsedArgs.header.anyIt("FUZZ" in it)))) and (requestMethod == "POST"):
+        log("error", "Please specify a fuzz area in the post data or the url, example: '{\"username\": \"\"}' or 'https://example.org/'")
+        quit(QuitFailure)
 
     echo ""
 
@@ -168,18 +165,18 @@ try:
     var threads = newSeq[Thread[tuple[threadId: int, threadArguments: ThreadArguments]]](threadCount)
 
     proc fuzz(word: string, client: HttpClient, args: FuzzArguments, threadId: int): void =
-        let urlToRequest: string = args.url.replace("[]", word)
+        let urlToRequest: string = args.url.replace("FUZZ", word)
 
         var headers: seq[tuple[key: string, val: string]] = @[]
 
         for header in args.headers:
             let s = header.split(":") 
-            let k = s[0].strip.replace("[]", word)
-            let v = s[1..(len(s)-1)].join(":").strip.replace("[]", word)
+            let k = s[0].strip.replace("FUZZ", word)
+            let v = s[1..(len(s)-1)].join(":").strip.replace("FUZZ", word)
             
             headers.add((key: k, val: v))
 
-        let resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("[]", word), newHttpHeaders(headers), client)
+        let resp: FuzzResponse = makeRequest(urlToRequest, args.requestMethod, args.postData.replace("FUZZ", word), newHttpHeaders(headers), client)
         let fuzzResult: FuzzResult = FuzzResult(
             word: word, 
             statusCode: resp.statusCode, 
@@ -290,13 +287,13 @@ except ShortCircuit as e:
     echo p.help
     echo """Examples:
   Fuzz URL path, show only responses which returned 200 OK 
-    nim -u https://example.org/[] -w path/to/wordlist.txt -sc OK
+    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK
 
   Fuzz 'User-Agent' header, show only responses which returned 200 OK 
-    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: []"
+    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: "
 
   Fuzz POST data, show only responses which returned 200 OK
-    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": "[]"}' 
+    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": ""}' 
 
 Report bugs:
   https://github.com/d4rckh/vaf/issues/new/choose

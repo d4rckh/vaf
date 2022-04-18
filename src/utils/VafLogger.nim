@@ -4,7 +4,6 @@ import strutils
 import httpclient
 import terminal
 
-import VafColors
 import ../types/[VafFuzzResult, VafFuzzArguments]
 
 proc log*(logType: string, logMessage: string): void = 
@@ -33,23 +32,30 @@ proc log*(logType: string, logMessage: string): void =
             fgBlue, "[DEBUG] ", logMessage, fgWhite
         )
 
+proc highlightSth*(message: string, what: string, color: ForegroundColor) = 
+    let parts = message.split(what)
+    var i = 0
+    for part in parts:
+        stdout.styledWrite(part)
+        if i < (len(parts) - 1):
+            stdout.styledWrite(color, what, fgWhite)
+        inc i
 
 proc log*(logType: string, logMessage: string, logArgument: string): void = 
     if logType == "option":
-        stdout.styledWriteLine(
-            fgCyan, logMessage, fgWhite, ": ", logArgument, fgWhite
-        )
+        stdout.styledWrite(fgCyan, logMessage, fgWhite, ": ")
+        if logMessage in @["Target", "Post Data"]:
+            highlightSth(logArgument, "FUZZ", fgYellow)
+            echo ""
+        else:
+            stdout.styledWriteLine(logArgument) 
 
 proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, threadId: int): void = 
-    var urlDecoded = "" 
-    var urlDisplay = ""
+    var wordDecoded = "" 
     var statusColor = fgYellow
     var statusCode = fuzzResult.statusCode.split(" ")[0]
     if fuzzResult.urlencoded:
-        urlDecoded = &"({decodeUrl(fuzzResult.word)})"
-    if fuzzResult.printUrl:
-        urlDisplay = fuzzResult.url
-        urlDisplay = urlDisplay.replace(fuzzResult.word, &"{fgWhite}{fgYellow}{fuzzResult.word}{fgWhite}{fgYellow}")
+        wordDecoded = &"({decodeUrl(fuzzResult.word)})"
     if parseInt(statusCode) in {200 .. 299}:
         statusColor = fgGreen
     # its khaki by default
@@ -58,7 +64,7 @@ proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, thread
     if parseInt(statusCode) in {400 .. 499}:
         statusColor = fgRed
     
-    stdout.styledWriteLine(
+    stdout.styledWrite(
         # Status
         statusColor, &"[{fuzzResult.statusCode}] ",
         # Length
@@ -66,9 +72,13 @@ proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, thread
         # Time,
         &"{fuzzResult.response.responseTime}ms ",
         # Word,
-        &"{fuzzResult.word} {urlDecoded} {urlDisplay}",
+        &"{fuzzResult.word} {wordDecoded} ",
         fgWhite
     )
+
+    if fuzzResult.printurl:
+        highlightSth(fuzzResult.url, fuzzResult.word, fgYellow)
+    echo ""
 
     # log("result", &"{RESETCOLS}{statusColor}[{fuzzResult.statusCode}] ({fuzzResult.response.responseLength} chars) {fuzzResult.response.responseTime}ms {fuzzResult.word} {ORANGE}{urlDecoded} {urlDisplay} {RESETCOLS}")    
     if fuzzArguments.printheaders:

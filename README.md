@@ -38,7 +38,7 @@ Usage:
 
 Options:
   -h, --help
-  -u, --url=URL              choose url, replace area to fuzz with []
+  -u, --url=URL              choose url, replace area to fuzz with 
   -w, --wordlist=WORDLIST    choose the wordlist to use
   -sc, --status=STATUS       set on which status to print, set this param to 'any' to print on any status (default: 200)
   -pr, --prefix=PREFIX       prefix, e.g. set this to / for content discovery if your url doesnt have a / at the end (default: )
@@ -56,12 +56,12 @@ Options:
 
 Fuzz GET URLs
 ```
-vaf.exe -w example_wordlists\short.txt -u https://example.org/[] -sf .html
+vaf.exe -w example_wordlists\short.txt -u https://example.org/ -sf .html
 ```
 
 Fuzz post data:
 ```
-vaf.exe -w example_wordlists\short.txt -u https://jsonplaceholder.typicode.com/posts -m post -sc 201 -pd "{\"title\": \"[]\"}"
+vaf.exe -w example_wordlists\short.txt -u https://jsonplaceholder.typicode.com/posts -m post -sc 201 -pd "{\"title\": \"\"}"
 ```
 
 ## Some tips
