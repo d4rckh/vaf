@@ -34,7 +34,7 @@ let p = newParser("vaf"):
   option("-pf", "--prefix", default=some(""), help="The prefixes to append to the word")
   option("-sf", "--suffix", default=some(""), help="The suffixes to append to the word")
   option("-t", "--threads", default=some("5"), help="Number of threads")
-  option("-sc", "--status", default=some("200"), help="The status to filter; to 'any' to print on any status")
+  option("-sc", "--status", default=some("200, 204, 302, 301, 307, 401"), help="The status to filter; to 'any' to print on any status")
   option("-g", "--grep", default=some(""), help="Only log if the response body contains the string")
   option("-ng", "--notgrep", default=some(""), help="Only log if the response body does no contain a string")
   option("-pd", "--postdata", default=some("{}"), help="Specify POST data; used only if '-m post' is set")
@@ -238,7 +238,7 @@ try:
 
             # Apply the status code filter
             let s: bool = len(filter(printOnStatus, proc(x: string): bool = x in resp.statusCode)) > 0
-            
+
             if  (s or 
                 (printOnStatus[0] == "any")) and 
                 (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or 

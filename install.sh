@@ -5,7 +5,7 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-echo "Downloading vaf"
+echo "Downloading latest vaf binary from releases"
 wget https://github.com/d4rckh/vaf/releases/latest/download/Linux-vaf
 echo "Deleting previous installation of var (if it exists)"
 rm /usr/bin/vaf

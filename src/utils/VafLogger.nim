@@ -58,9 +58,8 @@ proc printResponse*(fuzzResult: FuzzResult, fuzzArguments: FuzzArguments, thread
         wordDecoded = &"({decodeUrl(fuzzResult.word)})"
     if parseInt(statusCode) in {200 .. 299}:
         statusColor = fgGreen
-    # its khaki by default
-    # if parseInt(statusCode) in {300 .. 399}:
-    #     statusColor = KHAKI
+    if parseInt(statusCode) in {300 .. 399}:
+        statusColor = fgGreen
     if parseInt(statusCode) in {400 .. 499}:
         statusColor = fgRed
     
