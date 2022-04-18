@@ -5,13 +5,11 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-echo "Installing dependencies: nim"
-apt install nim
-echo "Building vaf using 'nimble build'"
-nimble build --verbose
+echo "Downloading vaf"
+wget https://github.com/d4rckh/vaf/releases/latest/download/Linux-vaf
 echo "Deleting previous installation of var (if it exists)"
 rm /usr/bin/vaf
-echo "Linking vaf to /usr/bin/vaf"
-ln -s `pwd`/vaf /usr/bin/vaf
+echo "Moving vaf to /usr/bin/vaf"
+mv Linux-vaf /usr/bin/vaf
 echo
 echo "vaf installed successfully, you can now run 'vaf'"
