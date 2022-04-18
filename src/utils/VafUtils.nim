@@ -10,10 +10,3 @@ iterator countTo*(n: int): int =
 proc formatDuration*(duration: Duration): string =
     let dt = initTime(0, 0).utc + duration
     return dt.format("mm:ss:fff")
-
-template loop*(body: untyped): void =
-  while true:
-    body
-
-template until*(cond: typed): void =
-  if cond: break
