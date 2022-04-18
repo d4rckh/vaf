@@ -1,8 +1,10 @@
+import httpclient
 
 type
-  VafResponse* = object
+  FuzzResponse* = object
     content*: string
     statusCode*: string
     responseLength*: int
     url*: string
     responseTime*: int64
+    headers*: HttpHeaders

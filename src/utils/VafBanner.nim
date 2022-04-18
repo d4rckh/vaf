@@ -1,10 +1,21 @@
-proc printBanner*(): void =
-  echo """ 
-                     _____ 
+import strformat
+import random
+
+import VafCompileConsts
+
+const BANNERS: seq[string] = @[
+
+"""                     _____ 
       ___  _______ _/ ____\
       \  \/ /\__  \\   __\ 
        \   /  / __ \|  |    
         \_/  (____  /__|   
-                  \/ v1.9.0
-            by d4rckh  
-"""
+                  \/"""
+
+]
+
+proc printBanner*(): void =
+  randomize()
+  echo &""" 
+{sample(BANNERS)} {TAG}
+            https://github.com/d4rckh/vaf"""

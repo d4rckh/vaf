@@ -1,7 +1,8 @@
-import VafFuzzResult
 import strformat
 
-proc saveToFile*(response: VafFuzzResult, outFile: string): void = 
+import ../types/VafFuzzResult
+
+proc saveToFile*(fuzzResult: FuzzResult, outFile: string): void =
     let f = open(outFile, fmAppend)
     defer: f.close()
-    f.writeLine(response.statusCode & ": " & response.url & fmt" (Length: {response.responseLength}; Time: {response.responseTime})") 
+    f.writeLine(fuzzResult.statusCode & ": " & fuzzResult.url & &" (Length: {fuzzResult.response.responseLength}; Time: {fuzzResult.response.responseTime})") 

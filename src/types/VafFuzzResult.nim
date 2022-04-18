@@ -1,9 +1,10 @@
+import VafFuzzResponse
+
 type
-  VafFuzzResult* = object
+  FuzzResult* = object
     word*: string
     statusCode*: string
     urlencoded*: bool
     url*: string
     printUrl*: bool
-    responseLength*: int
-    responseTime*: int64
+    response*: FuzzResponse

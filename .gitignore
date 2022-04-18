@@ -1,7 +1,10 @@
 vaf_dev
-vaf_dev.exe
 test
-src/Vaf.exe
 vaf
-vaf.exe
 example_wordlists/
+# dev is dum dum
+*dll
+*exe
+*html
+*cer
+testresults/
