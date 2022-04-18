@@ -1,0 +1,16 @@
+name: nimlint
+
+on: [pull_request]
+
+jobs:
+  nimlint:
+    name: runner / nimlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run nim check with reviewdog
+        uses: reviewdog/action-nimlint@v1.5.1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review # Change reporter.
+          src: 'src/*.nim'

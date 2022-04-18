@@ -238,7 +238,7 @@ try:
 
             # Apply the status code filter
             let s: bool = len(filter(printOnStatus, proc(x: string): bool = x in resp.statusCode)) > 0
-
+            
             if  (s or 
                 (printOnStatus[0] == "any")) and 
                 (((fuzzResult.word in resp.content) or decodeUrl(fuzzResult.word) in resp.content) or 

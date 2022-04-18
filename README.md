@@ -27,9 +27,10 @@ vaf is a cross-platform web fuzzer with a lot of features. Some of its features 
 
 ## Installing
 
-You can install vaf:
-- by downloading the **pre-compiled binaries in the [releases page](https://github.com/d4rckh/vaf/releases/)** and adding them manually to your path
-- by running the `install.sh` **bash script** which will __download nim, build vaf from source and then link the binary to /usr/bin__  (make sure to `chmod +x install.sh`)
+You can install vaf using this one-liner:
+```
+curl https://raw.githubusercontent.com/d4rckh/vaf/main/install.sh | sudo bash
+```
 
 ## Options
 
@@ -65,17 +66,29 @@ Options:
 
 ### Fuzz URL path, show only responses which returned 200 OK
 ```
+<<<<<<< HEAD
 nim -u https://example.org/ -w path/to/wordlist.txt -sc OK
+=======
+nim -u https://example.org/FUZZ -w path/to/wordlist.txt -sc OK
+>>>>>>> cc1ed8439d9a2aafc781fbd751a82befd22af0d9
 ```
 
 ### Fuzz 'User-Agent' header, show only responses which returned 200 OK
 ```
+<<<<<<< HEAD
 nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: "
+=======
+nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: FUZZ"
+>>>>>>> cc1ed8439d9a2aafc781fbd751a82befd22af0d9
 ```
 
 ### Fuzz POST data, show only responses which returned 200 OK
 ```
+<<<<<<< HEAD
 nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": ""}'
+=======
+nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": "FUZZ"}'
+>>>>>>> cc1ed8439d9a2aafc781fbd751a82befd22af0d9
 ```
 
 # Contributors 
