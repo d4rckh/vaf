@@ -287,13 +287,13 @@ except ShortCircuit as e:
     echo p.help
     echo """Examples:
   Fuzz URL path, show only responses which returned 200 OK 
-    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK
+    vaf -u https://example.org/ -w path/to/wordlist.txt -sc OK
 
   Fuzz 'User-Agent' header, show only responses which returned 200 OK 
-    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: "
+    vaf -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: "
 
   Fuzz POST data, show only responses which returned 200 OK
-    nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": ""}' 
+    vaf -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": ""}' 
 
 Report bugs:
   https://github.com/d4rckh/vaf/issues/new/choose
