@@ -19,8 +19,6 @@ import utils/VafUtils
 
 printBanner()
 
-nonExistentFunction()
-
 var forceExit = false
 
 proc handler() {.noconv.} =
