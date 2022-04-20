@@ -67,28 +67,40 @@ Options:
 ### Fuzz URL path, show only responses which returned 200 OK
 ```
 <<<<<<< HEAD
+<<<<<<< HEAD
 nim -u https://example.org/ -w path/to/wordlist.txt -sc OK
 =======
 nim -u https://example.org/FUZZ -w path/to/wordlist.txt -sc OK
 >>>>>>> cc1ed8439d9a2aafc781fbd751a82befd22af0d9
+=======
+vaf -u https://example.org/FUZZ -w path/to/wordlist.txt -sc OK
+>>>>>>> ca03becb544f6e6926ccb521fda9255b28545eb2
 ```
 
 ### Fuzz 'User-Agent' header, show only responses which returned 200 OK
 ```
 <<<<<<< HEAD
+<<<<<<< HEAD
 nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: "
 =======
 nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: FUZZ"
 >>>>>>> cc1ed8439d9a2aafc781fbd751a82befd22af0d9
+=======
+vaf -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: FUZZ"
+>>>>>>> ca03becb544f6e6926ccb521fda9255b28545eb2
 ```
 
 ### Fuzz POST data, show only responses which returned 200 OK
 ```
 <<<<<<< HEAD
+<<<<<<< HEAD
 nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": ""}'
 =======
 nim -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": "FUZZ"}'
 >>>>>>> cc1ed8439d9a2aafc781fbd751a82befd22af0d9
+=======
+vaf -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": "FUZZ"}'
+>>>>>>> ca03becb544f6e6926ccb521fda9255b28545eb2
 ```
 
 # Contributors 

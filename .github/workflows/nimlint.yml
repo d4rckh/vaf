@@ -8,6 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Setup nim
+        uses: iffy/install-nim@v4.1.1
+      - name: Installing packages
+        run: nimble install -y
       - name: Run nim check with reviewdog
         uses: reviewdog/action-nimlint@v1.5.1
         with:
