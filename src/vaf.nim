@@ -19,7 +19,12 @@ import utils/VafUtils
 
 printBanner()
 
+type
+  VafError = enum
+    VafSSLVerificationError, VafNoError
+
 var forceExit = false
+var lastError: VafError = VafNoError
 
 proc handler() {.noconv.} =
     # this will cause every thread to close its file stream, vaf will close on it's own afterwards
@@ -208,7 +213,16 @@ try:
             while strm.readLine(line) and not forceExit:
                 if threadData.fuzzData.debug:
                     log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & line)
-                fuzz(line, client, threadData.fuzzData, data.threadId)
+                try:
+                    fuzz(line, client, threadData.fuzzData, data.threadId)
+                except SslError:
+                    let msg = getCurrentExceptionMsg()
+                    if "certificate verify failed" in msg:
+                        lastError = VafSSLVerificationError
+                    else:
+                        log("error", fmt"Uncaught SSL Error: {msg}")
+                    forceExit = true
+
         strm.close()
 
     var i = 0
@@ -270,9 +284,11 @@ try:
         cursorUp 1
         eraseLine()
 
-
     if forceExit:
         log("warn", "Force exit, shutting down all threads...")
+        if not ( lastError == VafNoError ):
+            if lastError == VafSSLVerificationError:
+                log("error", "SSL Verification failed, you might need to specify a CA root certificate file using '-ca' or ignore SSL verification with '-i'")
 
     # Wait for all threads to finish
     joinThreads(threads)
