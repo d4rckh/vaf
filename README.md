@@ -1,6 +1,6 @@
 <div align="center">
 <h1>vaf</h1>
-<h3>A fast, simple, and feature rich web fuzzer writen in nim</h3>
+<h3>A fast, simple, and feature rich web fuzzer written in nim</h3>
 <img src="https://img.shields.io/github/stars/d4rckh/vaf"></img>
 <a href="https://github.com/d4rckh/vaf/issues">
   <img src="https://img.shields.io/github/issues/d4rckh/vaf"></img>
