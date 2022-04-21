@@ -19,7 +19,12 @@ import utils/VafUtils
 
 printBanner()
 
+type
+  VafError = enum
+    VafSSLVerificationError, VafNoError
+
 var forceExit = false
+var lastError: VafError = VafNoError
 
 proc handler() {.noconv.} =
     # this will cause every thread to close its file stream, vaf will close on it's own afterwards
@@ -34,7 +39,7 @@ let p = newParser("vaf"):
   option("-pf", "--prefix", default=some(""), help="The prefixes to append to the word")
   option("-sf", "--suffix", default=some(""), help="The suffixes to append to the word")
   option("-t", "--threads", default=some("5"), help="Number of threads")
-  option("-sc", "--status", default=some("200"), help="The status to filter; to 'any' to print on any status")
+  option("-sc", "--status", default=some("200, 204, 302, 301, 307, 401"), help="The status to filter; to 'any' to print on any status")
   option("-g", "--grep", default=some(""), help="Only log if the response body contains the string")
   option("-ng", "--notgrep", default=some(""), help="Only log if the response body does no contain a string")
   option("-pd", "--postdata", default=some("{}"), help="Specify POST data; used only if '-m post' is set")
@@ -208,7 +213,16 @@ try:
             while strm.readLine(line) and not forceExit:
                 if threadData.fuzzData.debug:
                     log("debug", "ThreadID: " & $data.threadId & " | " & " fuzzing w/ " & line)
-                fuzz(line, client, threadData.fuzzData, data.threadId)
+                try:
+                    fuzz(line, client, threadData.fuzzData, data.threadId)
+                except SslError:
+                    let msg = getCurrentExceptionMsg()
+                    if "certificate verify failed" in msg:
+                        lastError = VafSSLVerificationError
+                    else:
+                        log("error", fmt"Uncaught SSL Error: {msg}")
+                    forceExit = true
+
         strm.close()
 
     var i = 0
@@ -270,9 +284,11 @@ try:
         cursorUp 1
         eraseLine()
 
-
     if forceExit:
         log("warn", "Force exit, shutting down all threads...")
+        if not ( lastError == VafNoError ):
+            if lastError == VafSSLVerificationError:
+                log("error", "SSL Verification failed, you might need to specify a CA root certificate file using '-ca' or ignore SSL verification with '-i'")
 
     # Wait for all threads to finish
     joinThreads(threads)
@@ -288,13 +304,10 @@ except ShortCircuit as e:
     echo """Examples:
   Fuzz URL path, show only responses which returned 200 OK 
     vaf -u https://example.org/ -w path/to/wordlist.txt -sc OK
-
   Fuzz 'User-Agent' header, show only responses which returned 200 OK 
     vaf -u https://example.org/ -w path/to/wordlist.txt -sc OK -H "User-Agent: "
-
   Fuzz POST data, show only responses which returned 200 OK
     vaf -u https://example.org/ -w path/to/wordlist.txt -sc OK -m POST -H "Content-Type: application/json" -pd '{"username": ""}' 
-
 Report bugs:
   https://github.com/d4rckh/vaf/issues/new/choose
   """
